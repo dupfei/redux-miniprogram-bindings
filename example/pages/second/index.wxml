@@ -1,0 +1,2 @@
+<view>Counter：{{ myStore.counter }}</view>
+<view class="btn-reset" bindtap="reset">重置</view>

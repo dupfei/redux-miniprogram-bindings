@@ -1,0 +1,20 @@
+.counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn {
+  width: 100rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  font-size: 42rpx;
+  color: #fff;
+  background-color: #67c23a;
+  border-radius: 6rpx;
+}
+.num {
+  width: 120rpx;
+  text-align: center;
+  font-size: 36rpx;
+}

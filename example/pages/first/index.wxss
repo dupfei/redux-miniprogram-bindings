@@ -1,0 +1,13 @@
+.btn-reset {
+  margin-top: 24rpx;
+}
+.navigate {
+  margin: 24rpx auto 0;
+  width: 200rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  color: #fff;
+  background-color: #67c23a;
+  border-radius: 6rpx;
+}

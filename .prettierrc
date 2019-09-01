@@ -1,0 +1,15 @@
+{
+  "semi": false,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "overrides": [
+    {
+      "files": "**/*.wxml",
+      "options": { "parser": "angular" }
+    },
+    {
+      "files": "**/*.wxss",
+      "options": { "parser": "css" }
+    }
+  ]
+}

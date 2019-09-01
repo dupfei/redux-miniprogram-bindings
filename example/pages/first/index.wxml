@@ -1,0 +1,6 @@
+<counter></counter>
+<view class="btn-reset" bindtap="reset">重置</view>
+<view class="navigate" bindtap="navigate">{{ navigateText }}</view>
+<view>用户信息：</view>
+<view>name：{{ $store.userInfo.name }}</view>
+<view>age：{{ $store.userInfo.age }}</view>

@@ -1,0 +1,17 @@
+{
+  "name": "mpext",
+  "version": "1.0.0",
+  "description": "对原生小程序开发进行简单的扩展封装",
+  "main": "dist/mpext.js",
+  "author": "DPFlying",
+  "license": "MIT",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development rollup -c --watch",
+    "build": "cross-env NODE_ENV=production rollup -c"
+  },
+  "devDependencies": {
+    "cross-env": "^5.2.1",
+    "rollup": "^1.20.3",
+    "rollup-plugin-terser": "^5.1.1"
+  }
+}

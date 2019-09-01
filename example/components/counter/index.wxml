@@ -1,0 +1,5 @@
+<view class="counter">
+  <view class="btn" bindtap="handleIncrement">+</view>
+  <view class="num">{{ $store.counter }}</view>
+  <view class="btn" bindtap="handleDecrement">-</view>
+</view>
