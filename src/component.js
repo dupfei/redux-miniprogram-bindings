@@ -4,6 +4,7 @@ import injectState from './store/injectState'
 import subscription from './store/subscription'
 import { isFunc } from './utils'
 import bindActionCreators from './store/bindActionCreators'
+import setData from './extend/setData'
 
 export default function $component(config = {}) {
   const {
@@ -38,6 +39,10 @@ export default function $component(config = {}) {
     if (!option.methods) option.methods = {}
     if (hasStore && hasMapDispatch) {
       Object.assign(option.methods, bindActionCreators(ownActionCreators))
+    }
+
+    option.methods.$setData = function(...args) {
+      setData.apply(this, args)
     }
 
     return Component(option)

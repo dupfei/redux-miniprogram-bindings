@@ -4,6 +4,7 @@ import injectState from './store/injectState'
 import subscription from './store/subscription'
 import { isFunc } from './utils'
 import bindActionCreators from './store/bindActionCreators'
+import setData from './extend/setData'
 
 export default function $page(config = {}) {
   const {
@@ -37,6 +38,10 @@ export default function $page(config = {}) {
 
     if (hasStore && hasMapDispatch) {
       Object.assign(option, bindActionCreators(ownActionCreators))
+    }
+
+    option.$setData = function(...args) {
+      setData.apply(this, args)
     }
 
     return Page(option)

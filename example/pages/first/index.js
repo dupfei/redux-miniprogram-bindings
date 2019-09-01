@@ -11,11 +11,20 @@ $page({
 })({
   data: {
     navigateText: '页面跳转',
+    a: { b: [1, { e: true }, 3], c: 1, d: { f: '2' } },
   },
 
   onLoad() {
     setTimeout(() => {
       this.setUserInfo({ name: '新用户名', age: 24 })
+      this.$setData({
+        a: { b: [1, { e: false }, 3, 4], c: 1, d: { f: '2' } },
+      })
+      setTimeout(() => {
+        this.$setData({
+          'a.d': { f: 1 },
+        })
+      }, 3000)
     }, 3000)
   },
 
