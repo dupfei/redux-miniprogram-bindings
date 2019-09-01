@@ -37,6 +37,7 @@ export default function $component(config = {}) {
     }
 
     if (!option.methods) option.methods = {}
+
     if (hasStore && hasMapDispatch) {
       Object.assign(option.methods, bindActionCreators(ownActionCreators))
     }

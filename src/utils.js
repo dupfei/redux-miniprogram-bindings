@@ -7,4 +7,4 @@ export const hasProp = (obj, key) =>
 
 export const isFunc = val => typeof val === 'function'
 
-export const isEmptyObj = obj => Object.keys(obj) < 1
+export const isEmptyObj = obj => Object.keys(obj).length < 1
