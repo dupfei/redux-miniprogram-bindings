@@ -15,6 +15,7 @@ $page({
   },
 
   onLoad() {
+    this.showData()
     setTimeout(() => {
       this.setUserInfo({ name: '新用户名', age: 24 })
       this.$setData({

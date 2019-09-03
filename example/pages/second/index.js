@@ -7,6 +7,10 @@ $page({
   storeName: 'myStore',
   mapState: ['counter'],
 })({
+  onLoad() {
+    this.showData()
+  },
+
   reset() {
     store.dispatch(setCounter(0))
   },

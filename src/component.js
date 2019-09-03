@@ -2,9 +2,10 @@ import presetStateConf from './store/presetStateConf'
 import { getStore } from './store/store'
 import injectState from './store/injectState'
 import subscription from './store/subscription'
-import { isFunc } from './utils'
+import { isFunc, isEmptyObj } from './utils'
 import bindActionCreators from './store/bindActionCreators'
 import setData from './extend/setData'
+import { getMixin } from './extend/mixin'
 
 export default function $component(config = {}) {
   const {
@@ -19,6 +20,8 @@ export default function $component(config = {}) {
     const { attached, detached } = option
     const hasStore = !!getStore()
     let unsubscribe = null
+    const mixin = getMixin()
+    const hasMixin = !isEmptyObj(mixin)
 
     option.attached = function() {
       if (hasStore && hasMapState) {
@@ -45,6 +48,8 @@ export default function $component(config = {}) {
     option.methods.$setData = function(...args) {
       setData.apply(this, args)
     }
+
+    if (hasMixin) Object.assign(option.methods, mixin)
 
     return Component(option)
   }

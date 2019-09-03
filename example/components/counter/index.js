@@ -5,6 +5,10 @@ $component({
   mapState: ['counter'],
   mapDispatch: { increment, decrement },
 })({
+  attached() {
+    this.showData()
+  },
+
   methods: {
     handleIncrement() {
       this.increment(1)

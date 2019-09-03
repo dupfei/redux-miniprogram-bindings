@@ -6,6 +6,7 @@
 
 - 可直接使用`Redux`作为全局状态管理，触发更新后，未销毁的页面（组件）内状态自动更新
 - 对`setData`的数据进行`diff`优化
+- 支持`mixin`混入
 
 ### 使用`Redux`
 
@@ -131,3 +132,17 @@ $page()({
 
 > `diff`逻辑
 > !['diff'](./diff.png)
+
+### `mixin`混入
+
+> 目前只支持方法的全局混入，即需要在`app.js`中定义混入，在各个页面或组件中都可以使用
+
+```js
+import { setMixin } from 'mpext'
+
+setMixin({
+  showData() {
+    console.log('当前页面（组件）的data：', this.data)
+  },
+})
+```
