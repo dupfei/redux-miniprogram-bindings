@@ -135,7 +135,9 @@ $page()({
 
 ### `mixin`混入
 
-> 目前只支持方法的全局混入，即需要在`app.js`中定义混入，在各个页面或组件中都可以使用
+> 目前只支持方法的全局混入，即需要在`app.js`中定义混入，在各个页面或组件中都可以使用。
+
+> 因为小程序的`Component`构造器自带有`behaviors`属性，类似于`mixins`，实现组件间代码共享，同时小程序的页面也可以视为组件，可以使用`Component`构造器进行构造。使用`Component`构造的页面不仅可以使用`Page`的属性和方法，也能使用`Component`的属性和方法，可以使页面功能更加强大。在此，也极力推荐大家使用`Component`构造页面。所以，后续会在`$page`中统一使用`Component`构造页面，实现完善的`mixin`
 
 ```js
 import { setMixin } from 'mpext'
