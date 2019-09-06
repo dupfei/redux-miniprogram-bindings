@@ -1,20 +1,23 @@
-import presetStateConf from './store/presetStateConf'
-import { getStore } from './store/store'
-import injectState from './store/injectState'
-import subscription from './store/subscription'
-import { isFunc, isEmptyObj } from './utils'
-import bindActionCreators from './store/bindActionCreators'
+import { isObj, isEmptyObj, isFunc } from './utils'
+import {
+  getStore,
+  presetStoreConf,
+  injectState,
+  subscription,
+} from './extend/store'
 import setData from './extend/setData'
 import { getMixin } from './extend/mixin'
 
 export default function $page(config = {}) {
+  if (!isObj(config)) throw new TypeError('配置参数必须是一个对象')
+
   const {
     storeName,
     hasMapState,
     ownStateKeys,
     hasMapDispatch,
     ownActionCreators,
-  } = presetStateConf(config)
+  } = presetStoreConf(config)
 
   return function(option) {
     const { onLoad, onUnload } = option
@@ -39,15 +42,13 @@ export default function $page(config = {}) {
       }
     }
 
-    if (hasStore && hasMapDispatch) {
-      Object.assign(option, bindActionCreators(ownActionCreators))
-    }
+    if (hasMixin) option = Object.assign(mixin, option)
+
+    if (hasStore && hasMapDispatch) Object.assign(option, ownActionCreators)
 
     option.$setData = function(...args) {
       setData.apply(this, args)
     }
-
-    if (hasMixin) Object.assign(option, mixin)
 
     return Page(option)
   }

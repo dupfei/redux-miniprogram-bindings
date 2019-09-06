@@ -1,4 +1,4 @@
-import { getStore, setStore } from './store/store'
+import { getStore, setStore } from './extend/store'
 import $page from './page'
 import $component from './component'
 import { setMixin } from './extend/mixin'

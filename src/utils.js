@@ -1,9 +1,10 @@
-export const getType = val => Object.prototype.toString.call(val)
+const _toString = Object.prototype.toString
+export const getType = val => _toString.call(val)
 
 export const isObj = val => getType(val) === '[object Object]'
 
-export const hasProp = (obj, key) =>
-  Object.prototype.hasOwnProperty.call(obj, key)
+const hasOwnProperty = Object.prototype.hasOwnProperty
+export const hasProp = (obj, key) => hasOwnProperty.call(obj, key)
 
 export const isFunc = val => typeof val === 'function'
 

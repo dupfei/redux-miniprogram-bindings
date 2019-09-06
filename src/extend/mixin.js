@@ -7,10 +7,12 @@ export function getMixin() {
 }
 
 export function setMixin(option) {
-  if (!isObj(option)) throw new TypeError(`${option}不是一个对象`)
+  if (!isObj(option)) throw new TypeError(`配置参数必须是一个对象`)
 
-  const allIsFunc = Object.keys(option).every(key => isFunc(option[key]))
-  if (!allIsFunc) throw new TypeError('目前只支持混入方法')
+  const keys = Object.keys(option)
+  for (let i = 0, len = keys.length; i < len; i++) {
+    if (!isFunc(option[keys[i]])) throw new TypeError('目前只支持混入方法')
+  }
 
   _mixin = option
 }
