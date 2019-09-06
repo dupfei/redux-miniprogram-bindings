@@ -1,18 +1,24 @@
-import { isObj, isFunc } from '../utils'
+import { isObj, isFunc, hasProp } from '../utils'
 
 let _mixin = {}
+let _mixinKeys = []
 
-export function getMixin() {
-  return _mixin
-}
+export function setMixin(mixin) {
+  if (!isObj(mixin)) throw new TypeError(`混入参数必须是一个对象`)
 
-export function setMixin(option) {
-  if (!isObj(option)) throw new TypeError(`配置参数必须是一个对象`)
-
-  const keys = Object.keys(option)
-  for (let i = 0, len = keys.length; i < len; i++) {
-    if (!isFunc(option[keys[i]])) throw new TypeError('目前只支持混入方法')
+  _mixinKeys = Object.keys(mixin)
+  let i = _mixinKeys.length
+  while (i--) {
+    if (!isFunc(mixin[_mixinKeys[i]])) throw new TypeError('目前只支持混入方法')
   }
 
-  _mixin = option
+  _mixin = mixin
+}
+
+export function injectMixin(target) {
+  let i = _mixinKeys.length
+  while (i--) {
+    const key = _mixinKeys[i]
+    if (!hasProp(target, key)) target[key] = _mixin[key]
+  }
 }

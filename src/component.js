@@ -1,12 +1,13 @@
-import { isObj, isEmptyObj, isFunc } from './utils'
+import { isObj, isFunc } from './utils'
 import {
   getStore,
   presetStoreConf,
   injectState,
   subscription,
+  injectDispatch,
 } from './extend/store'
 import setData from './extend/setData'
-import { getMixin } from './extend/mixin'
+import { injectMixin } from './extend/mixin'
 
 export default function $component(config = {}) {
   if (!isObj(config)) throw new TypeError('配置参数必须是一个对象')
@@ -23,8 +24,6 @@ export default function $component(config = {}) {
     const { attached, detached } = option
     const hasStore = !!getStore()
     let unsubscribe = null
-    const mixin = getMixin()
-    const hasMixin = !isEmptyObj(mixin)
 
     option.attached = function() {
       if (hasStore && hasMapState) {
@@ -44,10 +43,10 @@ export default function $component(config = {}) {
 
     if (!option.methods) option.methods = {}
 
-    if (hasMixin) option.methods = Object.assign(mixin, option.methods)
+    injectMixin(option.methods)
 
     if (hasStore && hasMapDispatch) {
-      Object.assign(option.methods, ownActionCreators)
+      injectDispatch(option.methods, ownActionCreators)
     }
 
     option.methods.$setData = function(...args) {

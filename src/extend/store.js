@@ -28,8 +28,9 @@ export function presetStoreConf(config) {
   if (Array.isArray(mapState) && mapState.length > 0) {
     const state = _store.getState()
     const ownStateKeys = []
-    for (let i = 0, len = mapState.length; i < len; i++) {
-      if (hasProp(state, mapState[i])) ownStateKeys.push(mapState[i])
+    let i = mapState.length
+    while (i--) {
+      if (hasProp(state, mapState[i])) ownStateKeys.unshift(mapState[i])
     }
     if (ownStateKeys.length > 0) {
       result.hasMapState = true
@@ -42,7 +43,8 @@ export function presetStoreConf(config) {
     const ownActionCreators = {}
     const { dispatch } = _store
     const mapDispatchKeys = Object.keys(mapDispatch)
-    for (let i = 0, len = mapDispatchKeys.length; i < len; i++) {
+    let i = mapDispatchKeys.length
+    while (i--) {
       const key = mapDispatchKeys[i]
       const actionCreator = mapDispatch[key]
       if (isFunc(actionCreator)) {
@@ -62,7 +64,8 @@ export function presetStoreConf(config) {
 export function injectState(ownStateKeys, storeName) {
   const state = _store.getState()
   const ownState = {}
-  for (let i = 0, len = ownStateKeys.length; i < len; i++) {
+  let i = ownStateKeys.length
+  while (i--) {
     const key = ownStateKeys[i]
     ownState[key] = state[key]
   }
@@ -75,7 +78,8 @@ export function subscription(ownStateKeys, storeName) {
     let hasChange = false
     const ownStateChanges = {}
     const currState = _store.getState()
-    for (let i = 0, len = ownStateKeys.length; i < len; i++) {
+    let i = ownStateKeys.length
+    while (i--) {
       const key = ownStateKeys[i]
       if (currState[key] !== prevState[key]) {
         hasChange = true
@@ -93,4 +97,13 @@ export function subscription(ownStateKeys, storeName) {
     prevState = currState
   })
   return unsubscribe
+}
+
+export function injectDispatch(target, ownActionCreators) {
+  const keys = Object.keys(ownActionCreators)
+  let i = keys.length
+  while (i--) {
+    const key = keys[i]
+    target[key] = ownActionCreators[key]
+  }
 }

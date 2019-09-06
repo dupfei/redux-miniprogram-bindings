@@ -1,12 +1,13 @@
-import { isObj, isEmptyObj, isFunc } from './utils'
+import { isObj, isFunc } from './utils'
 import {
   getStore,
   presetStoreConf,
   injectState,
   subscription,
+  injectDispatch,
 } from './extend/store'
 import setData from './extend/setData'
-import { getMixin } from './extend/mixin'
+import { injectMixin } from './extend/mixin'
 
 export default function $page(config = {}) {
   if (!isObj(config)) throw new TypeError('配置参数必须是一个对象')
@@ -23,8 +24,6 @@ export default function $page(config = {}) {
     const { onLoad, onUnload } = option
     const hasStore = !!getStore()
     let unsubscribe = null
-    const mixin = getMixin()
-    const hasMixin = !isEmptyObj(mixin)
 
     option.onLoad = function(query) {
       if (hasStore && hasMapState) {
@@ -42,9 +41,9 @@ export default function $page(config = {}) {
       }
     }
 
-    if (hasMixin) option = Object.assign(mixin, option)
+    injectMixin(option)
 
-    if (hasStore && hasMapDispatch) Object.assign(option, ownActionCreators)
+    if (hasStore && hasMapDispatch) injectDispatch(option, ownActionCreators)
 
     option.$setData = function(...args) {
       setData.apply(this, args)
