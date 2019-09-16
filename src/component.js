@@ -1,3 +1,4 @@
+import { componentLifeCycle } from './lifeCycle'
 import { isObj, isFunc } from './utils'
 import {
   getStore,
@@ -21,20 +22,22 @@ export default function $component(config = {}) {
   } = presetStoreConf(config)
 
   return function(option) {
-    const { attached, detached } = option
+    const { load, unload } = componentLifeCycle
+    const oldLoad = option[load]
+    const oldUnload = option[unload]
     const hasStore = !!getStore()
     let unsubscribe = null
 
-    option.attached = function() {
+    option[load] = function() {
       if (hasStore && hasMapState) {
         injectState.call(this, ownStateKeys, storeName)
         unsubscribe = subscription.call(this, ownStateKeys, storeName)
       }
-      if (attached) attached.call(this)
+      if (oldLoad) oldLoad.call(this)
     }
 
-    option.detached = function() {
-      if (detached) detached.call(this)
+    option[unload] = function() {
+      if (oldUnload) oldUnload.call(this)
       if (isFunc(unsubscribe)) {
         unsubscribe()
         unsubscribe = null
