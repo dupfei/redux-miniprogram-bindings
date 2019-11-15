@@ -1,3 +1,4 @@
+<view>组件展示用户名：{{ $store.userInfo.name }}</view>
 <view class="counter">
   <view class="btn" bindtap="handleIncrement">+</view>
   <view class="num">{{ $store.counter }}</view>

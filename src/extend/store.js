@@ -1,7 +1,9 @@
 import { hasProp, isObj, isFunc, isEmptyObj } from '../utils'
 import diff from './diff'
+import SetDataQueue from './setDataQueue'
 
 let _store = null
+const setDataQueue = new SetDataQueue()
 
 export function getStore() {
   return _store
@@ -87,12 +89,8 @@ export function subscription(ownStateKeys, storeName) {
       }
     }
     if (hasChange) {
-      const diffData = diff(
-        ownStateChanges,
-        this.data[storeName],
-        `${storeName}.`
-      )
-      if (!isEmptyObj(diffData)) this.setData(diffData)
+      const diffData = diff(ownStateChanges, this.data[storeName], `${storeName}.`)
+      if (!isEmptyObj(diffData)) setDataQueue.push(this, diffData)
     }
     prevState = currState
   })

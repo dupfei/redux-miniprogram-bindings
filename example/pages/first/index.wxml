@@ -1,4 +1,5 @@
 <counter></counter>
+<view>页面展示counter：{{ $store.counter }}</view>
 <view class="btn-reset" bindtap="reset">重置</view>
 <view class="navigate" bindtap="navigate">{{ navigateText }}</view>
 <view>用户信息：</view>

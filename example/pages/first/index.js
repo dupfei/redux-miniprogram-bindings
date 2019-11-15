@@ -6,7 +6,7 @@ const store = getStore()
 
 $page({
   storeName: '$store',
-  mapState: ['userInfo'],
+  mapState: ['userInfo', 'counter'],
   mapDispatch: { setUserInfo },
 })({
   data: {
@@ -18,6 +18,8 @@ $page({
     this.showData()
     setTimeout(() => {
       this.setUserInfo({ name: '新用户名', age: 24 })
+      this.setUserInfo({ name: '最新新用户名', age: 25 })
+      store.dispatch(setCounter(1))
       this.$setData({
         a: { b: [1, { e: false }, 3, 4], c: 1, d: { f: '2' } },
       })

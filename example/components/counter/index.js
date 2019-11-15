@@ -2,7 +2,7 @@ import { $component } from '../../lib/mpext'
 import { increment, decrement } from '../../store/actions/counter'
 
 $component({
-  mapState: ['counter'],
+  mapState: ['userInfo', 'counter'],
   mapDispatch: { increment, decrement },
 })({
   attached() {

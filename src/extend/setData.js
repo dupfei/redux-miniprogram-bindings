@@ -1,5 +1,8 @@
 import { isObj, isEmptyObj, isFunc } from '../utils'
 import diff from './diff'
+import SetDataQueue from './setDataQueue'
+
+const setDataQueue = new SetDataQueue()
 
 export default function setData(obj, cb) {
   if (!isObj(obj)) throw new TypeError(`setData第一个参数必须是一个对象`)
@@ -13,6 +16,6 @@ export default function setData(obj, cb) {
   if (isEmptyObj(diffData)) {
     if (isFunc(cb)) cb()
   } else {
-    this.setData(diffData, cb)
+    setDataQueue.push(this, diffData, cb)
   }
 }
