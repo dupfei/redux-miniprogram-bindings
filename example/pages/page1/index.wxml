@@ -1,0 +1,11 @@
+<counter></counter>
+<button style="margin-top: 12rpx;" type="warn" bind:tap="handleReset">重置</button>
+
+<view class="gap">页面内Counter数值：{{ counter }}</view>
+
+<view class="gap">页面内用户信息：{{ intro }}</view>
+<user-info></user-info>
+
+<navigator class="gap" hover-class="none" url="../page2/index">
+  <button type="primary">页面跳转</button>
+</navigator>

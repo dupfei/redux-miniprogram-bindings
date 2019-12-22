@@ -1,11 +1,12 @@
 {
-  "pages": ["pages/first/index", "pages/second/index"],
+  "pages": ["pages/page1/index", "pages/page2/index"],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "mpext",
+    "navigationBarTitleText": "redux-miniprogram-bindings",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#f8f8f8"
+    "backgroundColor": "#fafafa"
   },
+  "style": "v2",
   "sitemapLocation": "sitemap.json"
 }

@@ -1,20 +1,17 @@
-import { $component } from '../../lib/mpext'
+import { connect } from '../../lib/redux-miniprogram-bindings'
 import { increment, decrement } from '../../store/actions/counter'
 
-$component({
-  mapState: ['userInfo', 'counter'],
+connect({
+  type: 'component',
+  mapState: ['counter'],
   mapDispatch: { increment, decrement },
 })({
-  attached() {
-    this.showData()
-  },
-
   methods: {
-    handleIncrement() {
-      this.increment(1)
+    handleAdd() {
+      this.increment(2)
     },
-    handleDecrement() {
-      this.decrement(1)
+    handleReduce() {
+      this.decrement(2)
     },
   },
 })

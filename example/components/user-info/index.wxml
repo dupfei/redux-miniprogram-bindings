@@ -1,0 +1,1 @@
+<view>组件内用户信息：姓名：{{ userInfo.name }}，年龄：{{ userInfo.age }}</view>

@@ -1,6 +1,9 @@
 import { SET_USER_INFO } from '../actions/userInfo'
 
-const initState = { name: 'userName', age: 24 }
+const initState = {
+  name: 'userName',
+  age: 25,
+}
 
 export default function userInfo(state = initState, action) {
   switch (action.type) {

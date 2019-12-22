@@ -1,19 +1,13 @@
 page {
   box-sizing: border-box;
-  padding: 24rpx 24rpx 0;
+  padding: 24rpx;
+  min-height: 100%;
+  line-height: 1.5;
   font-size: 30rpx;
-  background-color: #f8f8f8;
+  color: #262626;
+  background-color: #fafafa;
 }
 
-view {
-  line-height: 1.8;
-}
-
-.btn-reset {
-  height: 60rpx;
-  line-height: 60rpx;
-  text-align: center;
-  color: #fff;
-  background-color: #f56c6c;
-  border-radius: 6rpx;
+.gap {
+  margin-top: 24rpx;
 }

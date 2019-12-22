@@ -1,15 +1,13 @@
-import { INCREMENT, DECREMENT, SET_COUNTER } from '../actions/counter'
+import { INCREMENT, DECREMENT, SET_COUNT } from '../actions/counter'
 
-const initState = 0
-
-export default function counter(state = initState, action) {
+export default function counter(state = 0, action) {
   switch (action.type) {
     case INCREMENT:
       return state + action.step
     case DECREMENT:
       return state - action.step
-    case SET_COUNTER:
-      return action.counter
+    case SET_COUNT:
+      return action.count
     default:
       return state
   }

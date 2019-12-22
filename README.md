@@ -1,150 +1,230 @@
-# mpext
+# redux-miniprogram-bindings
 
-> 对原生小程序开发进行简单的扩展封装
+![MIT 协议](https://img.shields.io/github/license/dpflying/redux-miniprogram-bindings)
+![NPM 版本](https://img.shields.io/npm/v/redux-miniprogram-bindings)
+
+适用于小程序的 `Redux` 绑定辅助库
 
 ## 特性
 
-- 可直接使用`Redux`作为全局状态管理，触发更新后，未销毁的页面（组件）内状态自动更新
-- 对`setData`的数据进行`diff`优化
-- 支持`mixin`混入
+- `API` 简单灵活，只需一个 `connect` 即可轻松使用
+- 功能完善，提供了多种使用方式，可满足不同的需求和使用场景
+- 支持在 `XML` 页面中使用
+- 执行 `dispatch` 后所有未销毁的页面(组件)内状态自动更新，依赖的视图自动触发渲染，无需额外处理
+- 自动进行 `diff优化` 和 `批量队列更新` 处理，性能优异
+- 同时支持 `微信小程序` 和 `支付宝小程序`
 
-### 使用`Redux`
+## 安装
 
-- 创建`store`
+- 通过 `npm` 或 `yarn` 安装
 
-`mpext`本身并不包含`Redux`，需单独引用
+  ```bash
+  npm install --save redux redux-miniprogram-bindings
 
-```js
-import { combineReducers, createStore } from 'redux'
-import counter from 'reducers/counter'
+  yarn add redux redux-miniprogram-bindings
+  ```
 
-const rootReducer = combineReducers({
-  counter,
-})
+- 也可以直接引用 `dist` 文件下的 `redux-miniprogram-bindings` 文件，同时引用 `redux` 文件
 
-const store = createStore(rootReducer)
+## 使用
 
-export default store
-```
+1. 创建 `Redux` 的 `Store` 实例
 
-- 在`app.js`中将`store`连接到`mpext`中
+2. 在 `App()` 中通过 `provider` 字段进行配置绑定 `store`
 
-```js
-import { setStore } from 'mpext'
-import store from 'store'
+   ```js
+   import store from 'your/store/path'
 
-setStore(store)
+   App({
+     provider: {
+       store,
+     },
+   })
+   ```
 
-App({
-  // ...
-})
-```
+3. 在页面中使用
 
-- 使用`store`
+   ```js
+   import { connect } from 'redux-miniprogram-bindings'
+   import { actionCreator1, actionCreator2 } from 'your/store/action-creators/path'
 
-注册页面或组件时需要使用`mpext`提供的`$page`和`$component`
+   connect({
+     mapState: ['dependent', 'state'],
+     mapDispatch: {
+       methodsName1: actionCreator1,
+       methodsName2: actionCreator2,
+     },
+   })({
+     onLoad() {
+       // 读取 state 中的值
+       const dependent = this.data.dependent
+       // dispatch actionCreator1
+       this.methodsName1()
+       // dispatch actionCreator2
+       this.methodsName2(/** ...args */)
+     },
+   })
+   ```
 
-```js
-import { $page, $component } from 'mpext'
-import { setCounter } from 'actions/counter'
+4. 在组件中使用
 
-$page({
-  storeName: '$store',
-  mapState: ['counter'],
-  mapDispatch: { setCounter },
-})({
-  // ...
-})
-```
+   ```js
+   import { connect } from 'redux-miniprogram-bindings'
+   import { actionCreator1, actionCreator2 } from 'your/store/action-creators/path'
 
-为了标识该状态为全局状态，会将页面（组件）引用的全局状态统一注入到一个对象中，该对象在`data`中的属性名为`storeName`的值，默认为`$store`
+   connect({
+     type: 'component',
+     mapState: state => ({
+       data1: state.dependent,
+       data2: state.state,
+     }),
+     mapDispatch: dispatch => ({
+       methodsName1: () => dispatch(actionCreator1()),
+       methodsName2: (...args) => dispatch(actionCreator2(...args)),
+     }),
+   })({
+     attached() {
+       // 读取 state 中的值
+       const dependent = this.data.data1
+       // dispatch actionCreator1
+       this.methodsName1()
+       // dispatch actionCreator2
+       this.methodsName2(/** ...args */)
+     },
+   })
+   ```
 
-```html
-<view>{{ $store.counter }}</view>
-```
+5. 在 `XML` 中使用
 
-`mapState`属性必须传入一个字符串数组，各个字符串为该页面（组件）需要引入的全局状态的`key`值。`data`中只会挂载在`mapState`中声明的全局状态，同时也只有在`mapState`中声明的全局状态在状态更新时自动触发页面（组件）更新
+   ```html
+   <view>{{ data1 }}</view>
+   ```
 
-```js
-// 获取 store 方式一
-import { getStore } from 'mpext'
-const store = getStore()
-// 获取 store 方式二
-import store from 'store'
+6. 详细用法请参考 [`API`](#API) 介绍和 [`示例`]('./example/')
 
-// 获取所有的全局状态
-const state = store.getState()
-```
+## API
 
-`mapDispatch`属性必须为一个`Object`，`key`值为在页面（组件）内可访问的方法名，值为`actionCreator`函数，通过该方法，可以自动将`dispatch`绑定到`actionCreator`函数上，并挂载到页面（组件）上，方便调用。全局状态只能通过`dispatch`触发`action`进行更新，不能通过`setData`更新
+### **provider** - `store` 配置和绑定
 
-```js
-$page({
-  mapDispatch: { increment },
-})({
-  // 通过 mapDispatch 注入的可直接调用，触发状态更新
-  handleIncrement() {
-    this.increment(1)
-  },
-})
+- **platform**：`string`
 
-import { getStore } from 'mpext'
-import { setCounter } from 'store/actions/counter'
+  当前小程序运行平台，可选值：`wechat` | `alipay` ，默认值：`wechat`
 
-const store = getStore()
+- **store**：`Object`
 
-$page()({
-  handleDecrement() {
-    // 没有通过 mapDispatch 注入的，可以通过 store.dispatch 触发更新
-    store.dispatch(setCounter(0))
-  },
-})
-```
+  `Redux` 的 `Store` 实例对象，必传
 
-> 注意：如果直接将通过`mapDispatch`注入的方法绑定到事件处理上，请确保该方法不需要传入参数，因为事件处理函数默认会传入`event`对象作为第一个参数
+- **namespace**：`string`
 
-```html
-<!-- handleAdd 的第一个参数会接收 event 对象 -->
-<view bind:tap="handleAdd">Add</view>
-```
+  命名空间，默认为空。当设置命名空间后，会将所有依赖的 `state` 数据存放到以命名空间字段值为 `key` 的对象中，此时读取 `state` 值需要加上命名空间字段值。例如设置 `namespace: '$store'` ，那么在页面(组件)中获取依赖的 `state` 值需要使用 `this.data.$store.xxx` 形式
 
-### `diff`优化
+  命名空间存在的意义：1、明确知道哪些是 `store` 中的数据，哪些是 `data` 中的值；2、`store` 中的数据更改必须通过 `dispatch` 触发，可以避免无意中使用 `this.setData` 造成 `store` 中数据更改，因为更新时需要加上命名空间
 
-使用`Redux`管理的全局状态会在更新时自动进行`diff`处理，将`setData`的数据量降到最低
+- **manual**：`boolean`
 
-对于普通数据更新提供了`$setData`方法，并没有直接覆盖`setData`方法，因为`diff`优化本身是耗时的。最好的优化方式是使用`setData`，将`key`以数据路径的形式给出，改变数组中的某一项或对象中的某个属性。对于一些明确知道数据类型为基本类型的，也建议使用`setData`的方式更新数据，因为对基本类型的数据进行`diff`是无意义的。只有对于一些不知道哪里会更改或主动优化比较麻烦的引用类型值，才建议使用`$setData`方法。同时`$setData`也支持将`key`以数据路径的形式给出，但是不会对其值进行`diff`操作，因为对于数据路径形式的`key`，`mpext`会认为你已经做好了`diff`优化，不需要再次`diff`
+  是否手动注册 `Page` 和 `Component` ，默认为 `false`。当设置为 `true` 时，`connect` 会返回整理好的 `options` 对象，需要主动调用 `Page`、`Component` 进行实例注册。这为使用者自定义扩展提供了途径。如果 `connect` 中也配置了该属性，会覆盖此处的配置，以 `connect` 中的配置为准
 
-```js
-$page()({
-  data: {
-    a: { b: [1, { c: 1 }, 3] },
-    b: { b: [1, { c: 1 }, 3] },
-  },
+  ```js
+  Page(
+    connect({
+      manual: true,
+    })({})
+  )
+  ```
 
-  onLoad() {
-    this.$setData({
-      a: { b: [1, { c: 2 }, 3, 4] },
-      'b.b[0]': 2,
+### **connect** - 连接 `store`
+
+- **type**：`string`
+
+  所连接实例的类型，可选值：`page` | `component`，默认值：`page`
+
+- **mapState**：`string[] | state => Object`
+
+  依赖的 `state`，可选。会将依赖的 `store` 数据注入到 `data` 中，自动更新
+
+  - 数组形式：数组中的每一项为依赖的 `state` 的相应 `key` 值，页面(组件)会在依赖的 `state` 发生改变时自动更新状态和触发视图渲染
+
+    ```js
+    mapState: ['state1', 'state2']
+    ```
+
+  - 函数形式：函数接收 `state` 作为参数，可以获取到最新的状态数据，必须返回一个对象，对象中的每一项可以是任意值，一般是根据 `state` 组合的数据。该方式会在每次 `dispatch` 时重新执行一次函数，然后对函数结果和现有 `data` 中的数据进行 `diff` 比较，确认该依赖发生改变后更新渲染
+
+    因为函数可以返回任意对象，所以无法追踪到具体依赖的 `state` ，通过重新计算函数，将返回的新值和旧值进行 `diff` 后判断是否更新。不建议在函数内有大量计算操作
+
+    ```js
+    mapState: state => ({
+      region: state.province + state.city + state.area,
+      name: state.userInfo.name,
     })
-  },
-})
-```
+    ```
 
-> `diff`逻辑
-> !['diff'](./diff.png)
+- **mapDispatch**：`Object | dispatch => Object`
 
-### `mixin`混入
+  注入可执行的 `dispatch` 处理函数或任意函数，可选
 
-> 目前只支持方法的全局混入，即需要在`app.js`中定义混入，在各个页面或组件中都可以使用。
+  - 对象形式：`key` 值为自定义函数名，实例内通过该名称调用该方法，`value` 值为 `actionCreator` 函数。会将 `actionCreator` 函数包装成自动调用 `disptach` 的函数，并注入到实例方法中
 
-> 因为小程序的`Component`构造器自带有`behaviors`属性，类似于`mixins`，实现组件间代码共享，同时小程序的页面也可以视为组件，可以使用`Component`构造器进行构造。使用`Component`构造的页面不仅可以使用`Page`的属性和方法，也能使用`Component`的属性和方法，可以使页面功能更加强大。在此，也极力推荐大家使用`Component`构造页面。所以，后续会在`$page`中统一使用`Component`构造页面，实现完善的`mixin`
+    ```js
+    mapDispatch: {
+      methodsName1: actionCreator1,
+      methodsName2: actionCreator2,
+    }
+
+    // 调用
+    this.methodsName1()
+    // 相当于
+    dispatch(actionCreator1())
+
+    // 调用
+    this.methodsName2(a, b, c)
+    // 相当于
+    dispatch(methodsName2(a, b, c))
+    ```
+
+  - 函数形式：函数接收 `dispatch` 作为参数，返回一个对象，包含自定义整理后的处理函数
+
+    ```js
+    mapDispatch: dispatch => ({
+      methodsName1: () => dispatch(actionCreator1()),
+      methodsName2: (...args) => dispatch(actionCreator2(...args)),
+    })
+
+    // 调用
+    this.methodsName1()
+    this.methodsName2(a, b, c)
+    ```
+
+    **注意：** 通过 `mapDispatch` 注入的函数也可以在 `XML` 中作为事件处理函数使用。如果函数需要传递参数时请注意，事件处理函数默认会传入 `event` 对象作为第一个参数
+
+    ```html
+    <view bind:tap="handleAdd">Add</view>
+    ```
+
+- **manual**：`boolean`
+
+  是否手动注册 `Page` 和 `Component` ，默认值为 `provider` 中配置的值或 `false` ，优先级高于 `provider` 中的配置
+
+### **useStore** - 获取 `store` 实例对象
+
+调用时请确保已经调用 `App()` ，如果在 `App()` 调用之前调用将无法获取到 `App` 实例对象
 
 ```js
-import { setMixin } from 'mpext'
+import { useStore } from 'redux-miniprogram-bindings'
 
-setMixin({
-  showData() {
-    console.log('当前页面（组件）的data：', this.data)
-  },
-})
+const store = useStore()
+store.getState()
 ```
+
+### **useDispatch** - 获取 `dispatch` 函数
+
+```js
+import { useDispatch } from 'redux-miniprogram-bindings'
+
+const dispatch = useDispatch()
+dispatch(action)
+```
+
+## `diff` 逻辑
+
+![diff逻辑](./diff.svg)

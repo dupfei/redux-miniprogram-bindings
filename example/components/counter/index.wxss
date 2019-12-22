@@ -3,18 +3,13 @@
   align-items: center;
   justify-content: center;
 }
-.btn {
-  width: 100rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  text-align: center;
-  font-size: 42rpx;
-  color: #fff;
-  background-color: #67c23a;
-  border-radius: 6rpx;
+
+.counter__btn {
+  margin: 0;
 }
-.num {
-  width: 120rpx;
+
+.counter__text {
+  margin: 0 24rpx;
+  width: 100rpx;
   text-align: center;
-  font-size: 36rpx;
 }

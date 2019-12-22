@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "counter": "/components/counter/index",
+    "user-info": "/components/user-info/index"
+  }
+}

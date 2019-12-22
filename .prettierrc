@@ -1,15 +1,20 @@
 {
+  "printWidth": 100,
   "semi": false,
   "singleQuote": true,
   "trailingComma": "es5",
   "overrides": [
     {
-      "files": "**/*.wxml",
-      "options": { "parser": "angular" }
+      "files": ["**/*.wxml"],
+      "options": {
+        "parser": "angular"
+      }
     },
     {
-      "files": "**/*.wxss",
-      "options": { "parser": "css" }
+      "files": ["**/*.wxss"],
+      "options": {
+        "parser": "css"
+      }
     }
   ]
 }

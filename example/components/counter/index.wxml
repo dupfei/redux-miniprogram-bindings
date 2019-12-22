@@ -1,6 +1,5 @@
-<view>组件展示用户名：{{ $store.userInfo.name }}</view>
 <view class="counter">
-  <view class="btn" bindtap="handleIncrement">+</view>
-  <view class="num">{{ $store.counter }}</view>
-  <view class="btn" bindtap="handleDecrement">-</view>
+  <button class="counter__btn" type="primary" size="mini" bind:tap="handleReduce">-</button>
+  <view class="counter__text">{{ counter }}</view>
+  <button class="counter__btn" type="primary" size="mini" bind:tap="handleAdd">+</button>
 </view>

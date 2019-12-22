@@ -1,16 +1,36 @@
+import typescript2 from 'rollup-plugin-typescript2'
 import { terser } from 'rollup-plugin-terser'
 
-export default {
-  input: './src/index.js',
-  output: [
-    {
-      file: './dist/mpext.js',
+const isProd = process.env.NODE_ENV === 'production'
+
+export default [
+  {
+    input: './src/index.ts',
+    output: {
+      file: `./dist/redux-miniprogram-bindings${isProd ? '.min' : ''}.js`,
       format: 'es',
     },
-    {
-      file: './example/lib/mpext.js',
+    plugins: [
+      typescript2({
+        useTsconfigDeclarationDir: true,
+      }),
+      ...(isProd ? [terser()] : []),
+    ],
+  },
+  {
+    input: './src/index.ts',
+    output: {
+      file: `./example/lib/redux-miniprogram-bindings.js`,
       format: 'es',
     },
-  ],
-  plugins: process.env.NODE_ENV === 'production' ? [terser()] : [],
-}
+    plugins: [
+      typescript2({
+        tsconfigOverride: {
+          compilerOptions: {
+            declaration: false,
+          },
+        },
+      }),
+    ],
+  },
+]
