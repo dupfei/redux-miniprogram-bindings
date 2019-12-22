@@ -338,7 +338,7 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
                 };
                 options[onUnloadKey] = function () {
                     if (oldOnUnload)
-                        oldOnUnload();
+                        oldOnUnload.call(this);
                     if (unsubscribe) {
                         unsubscribe();
                         unsubscribe = null;

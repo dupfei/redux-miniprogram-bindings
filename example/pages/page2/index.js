@@ -15,6 +15,14 @@ Page(
       inputValue: '',
     },
 
+    onLoad() {
+      console.log('onLoad', this.data.userName)
+    },
+
+    onUnload() {
+      console.log('onUnload', this.data.userName)
+    },
+
     handleInput(e) {
       this.setData({
         inputValue: e.detail.value,

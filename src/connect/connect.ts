@@ -67,7 +67,7 @@ export default function connect({
         }
 
         options[onUnloadKey] = function() {
-          if (oldOnUnload) oldOnUnload()
+          if (oldOnUnload) oldOnUnload.call(this)
 
           // 取消监听
           if (unsubscribe) {
