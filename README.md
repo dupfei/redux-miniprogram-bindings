@@ -100,7 +100,7 @@
    <view>{{ data1 }}</view>
    ```
 
-6. 详细用法请参考 [`API`](#API) 介绍和 [`示例`]('./example/')
+6. 详细用法请参考 [`API`](#API) 介绍和 [`示例`](https://github.com/DPFlying/redux-miniprogram-bindings/tree/master/example)
 
 ## API
 
