@@ -3,7 +3,11 @@ import getProvider from '../provider'
 import batchUpdates from './batchUpdates'
 import { isArray } from '../utils'
 
-export default function subscription(thisArg: PageComponentOption, mapState: MapState) {
+export default function subscription(
+  thisArg: PageComponentOption,
+  mapState: MapState,
+  updateDeps: string[]
+) {
   const { store } = getProvider()
 
   let prevState = store.getState()
@@ -23,9 +27,15 @@ export default function subscription(thisArg: PageComponentOption, mapState: Map
         }
       }
     } else {
-      // 函数形式的 mapState 每次会重新执行一次
-      // 既然能进入监听，表示 mapState 函数返回的一定是一个非空对象
-      ownStateChanges = mapState(currState)
+      // 根据依赖项的值是否改变判断是否需要更新
+      for (let i = 0, l = updateDeps.length; i < l; i++) {
+        const key = updateDeps[i]
+        if (currState[key] !== prevState[key]) {
+          // 既然能进入监听，表示 mapState 函数返回的一定是一个非空对象
+          ownStateChanges = mapState(currState)
+          break
+        }
+      }
     }
 
     if (ownStateChanges) {

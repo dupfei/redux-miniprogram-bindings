@@ -31,6 +31,10 @@ export type MapStateArray = string[]
 export type MapStateFunction = (state: IAnyObject) => IAnyObject
 export type MapState = MapStateArray | MapStateFunction
 
+type OwnState = IAnyObject | null
+type UpdateDeps = string[] | null
+export type handleMapStateReturn = [OwnState, UpdateDeps]
+
 export type MapDispatchObject = Record<string, ActionCreator<AnyAction>>
 export type MapDispatchFunction = (dispatch: Dispatch) => Record<string, Function>
 export type MapDispatch = MapDispatchObject | MapDispatchFunction

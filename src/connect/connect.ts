@@ -34,8 +34,8 @@ export default function connect({
     options.$type = type
 
     if (mapState) {
-      const ownState = handleMapState(mapState)
-      // ownState 存在时表示 ownState 一定是非空对象，后续不需要再判断
+      const [ownState, updateDeps] = handleMapState(mapState, true)
+      // ownState 存在时表示 ownState 一定是非空对象，updateDeps 一定是数组，后续不需要再判断
       if (ownState) {
         const [onLoadKey, onUnloadKey] = lifetimes[type]
         const oldOnLoad = <Function | undefined>options[onLoadKey]
@@ -51,7 +51,7 @@ export default function connect({
         options[onLoadKey] = function(...args: IAnyArray) {
           // 加载时 setData 依赖的 state 的最新值
           const diffData = diff(
-            <IAnyObject>handleMapState(mapState),
+            <IAnyObject>handleMapState(mapState, false)[0],
             <IAnyObject>(namespace ? (<IAnyObject>this.data)[namespace] : this.data),
             namespace
           )
@@ -61,7 +61,7 @@ export default function connect({
           }
 
           // 监听依赖的 state 的改变
-          unsubscribe = subscription(this, mapState)
+          unsubscribe = subscription(this, mapState, <string[]>updateDeps)
 
           if (oldOnLoad) oldOnLoad.apply(this, args)
         }

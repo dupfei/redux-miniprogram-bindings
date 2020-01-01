@@ -39,6 +39,47 @@ const getType = (value) => _toString.call(value);
 const getKeys = Object.keys;
 const isEmptyObject = (value) => getKeys(value).length < 1;
 
+let updateDeps = [];
+function defineReactive(state) {
+    const stateKeys = getKeys(state);
+    for (let i = 0, l = stateKeys.length; i < l; i++) {
+        const key = stateKeys[i];
+        const descriptor = Object.getOwnPropertyDescriptor(state, key);
+        if (descriptor && descriptor.configurable === false) {
+            throw new Error('Function 类型的 mapState 需要使用 defineProperty 进行依赖收集，请勿将 configurable 属性定义为 false');
+        }
+        const getter = descriptor && descriptor.get;
+        if (getter &&
+            getter.__ob__) {
+            continue;
+        }
+        const setter = descriptor && descriptor.set;
+        let value = state[key];
+        const _getter = () => {
+            if (updateDeps.indexOf(key) < 0) {
+                updateDeps.push(key);
+            }
+            return getter ? getter.call(state) : value;
+        };
+        _getter.__ob__ = true;
+        const _setter = (newVal) => {
+            if (getter && !setter)
+                return;
+            if (setter) {
+                setter.call(state, newVal);
+            }
+            else {
+                value = newVal;
+            }
+        };
+        Object.defineProperty(state, key, {
+            configurable: true,
+            enumerable: true,
+            get: _getter,
+            set: _setter,
+        });
+    }
+}
 function handleMapStateArray(mapState) {
     const state = getProvider().store.getState();
     const ownState = {};
@@ -50,21 +91,26 @@ function handleMapStateArray(mapState) {
     }
     return isEmptyObject(ownState) ? null : ownState;
 }
-function handleMapStateFunction(mapState) {
-    const ownState = mapState(getProvider().store.getState());
+function handleMapStateFunction(mapState, collectDeps) {
+    const state = getProvider().store.getState();
+    if (collectDeps) {
+        updateDeps = [];
+        defineReactive(state);
+    }
+    const ownState = mapState(state);
     if (!isPlainObject(ownState)) {
         throw new Error('mapState 函数必须返回一个对象');
     }
-    return isEmptyObject(ownState) ? null : ownState;
+    return [isEmptyObject(ownState) ? null : ownState, collectDeps ? [...updateDeps] : null];
 }
-function handleMapState(mapState) {
+function handleMapState(mapState, collectDeps = false) {
     if (isArray(mapState)) {
-        return handleMapStateArray(mapState);
+        return [handleMapStateArray(mapState), collectDeps ? [...mapState] : null];
     }
     if (isFunction(mapState)) {
-        return handleMapStateFunction(mapState);
+        return handleMapStateFunction(mapState, collectDeps);
     }
-    return null;
+    return [null, null];
 }
 
 function handleMapDispatchObject(mapDispatch, target) {
@@ -280,7 +326,7 @@ class BatchUpdates {
 }
 var batchUpdates = new BatchUpdates();
 
-function subscription(thisArg, mapState) {
+function subscription(thisArg, mapState, updateDeps) {
     const { store } = getProvider();
     let prevState = store.getState();
     const listener = () => {
@@ -298,7 +344,13 @@ function subscription(thisArg, mapState) {
             }
         }
         else {
-            ownStateChanges = mapState(currState);
+            for (let i = 0, l = updateDeps.length; i < l; i++) {
+                const key = updateDeps[i];
+                if (currState[key] !== prevState[key]) {
+                    ownStateChanges = mapState(currState);
+                    break;
+                }
+            }
         }
         if (ownStateChanges) {
             batchUpdates.push(thisArg, ownStateChanges);
@@ -320,7 +372,7 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
         const isPage = type === 'page';
         options.$type = type;
         if (mapState) {
-            const ownState = handleMapState(mapState);
+            const [ownState, updateDeps] = handleMapState(mapState, true);
             if (ownState) {
                 const [onLoadKey, onUnloadKey] = lifetimes[type];
                 const oldOnLoad = options[onLoadKey];
@@ -328,11 +380,11 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
                 let unsubscribe = null;
                 options.data = Object.assign(options.data || {}, namespace ? { [namespace]: ownState } : ownState);
                 options[onLoadKey] = function (...args) {
-                    const diffData = diff(handleMapState(mapState), (namespace ? this.data[namespace] : this.data), namespace);
+                    const diffData = diff(handleMapState(mapState, false)[0], (namespace ? this.data[namespace] : this.data), namespace);
                     if (!isEmptyObject(diffData)) {
                         this.setData(diffData);
                     }
-                    unsubscribe = subscription(this, mapState);
+                    unsubscribe = subscription(this, mapState, updateDeps);
                     if (oldOnLoad)
                         oldOnLoad.apply(this, args);
                 };
