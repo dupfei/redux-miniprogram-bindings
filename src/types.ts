@@ -31,6 +31,11 @@ export type MapStateArray = string[]
 export type MapStateFunction = (state: IAnyObject) => IAnyObject
 export type MapState = MapStateArray | MapStateFunction
 
+export interface Getter {
+  (): unknown
+  __ob__?: boolean
+}
+
 type OwnState = IAnyObject | null
 type UpdateDeps = string[] | null
 export type handleMapStateReturn = [OwnState, UpdateDeps]

@@ -29,6 +29,10 @@ export declare type LifetimesSets = Record<Platform, Lifetimes>
 export declare type MapStateArray = string[]
 export declare type MapStateFunction = (state: IAnyObject) => IAnyObject
 export declare type MapState = MapStateArray | MapStateFunction
+export interface Getter {
+  (): unknown
+  __ob__?: boolean
+}
 declare type OwnState = IAnyObject | null
 declare type UpdateDeps = string[] | null
 export declare type handleMapStateReturn = [OwnState, UpdateDeps]

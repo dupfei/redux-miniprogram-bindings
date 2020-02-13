@@ -4,6 +4,7 @@ import {
   MapStateFunction,
   IAnyObject,
   handleMapStateReturn,
+  Getter,
 } from '../types'
 import getProvider from '../provider'
 import { isArray, isFunction, isPlainObject, isEmptyObject, getKeys } from '../utils'
@@ -21,32 +22,27 @@ function defineReactive(state: IAnyObject) {
       )
     }
 
-    const getter = descriptor && descriptor.get
+    const _getter: Getter | undefined = descriptor && descriptor.get
     // 对已经定义过依赖收集监听的进行过滤
-    if (
-      getter &&
-      // @ts-ignore
-      getter.__ob__
-    ) {
+    if (_getter && _getter.__ob__) {
       continue
     }
 
-    const setter = descriptor && descriptor.set
+    const _setter = descriptor && descriptor.set
     let value = state[key]
 
-    const _getter = () => {
+    const getter: Getter = () => {
       if (updateDeps.indexOf(key) < 0) {
         updateDeps.push(key)
       }
-      return getter ? getter.call(state) : value
+      return _getter ? _getter.call(state) : value
     }
-    // @ts-ignore
-    _getter.__ob__ = true
+    getter.__ob__ = true
 
-    const _setter = (newVal: unknown) => {
-      if (getter && !setter) return
-      if (setter) {
-        setter.call(state, newVal)
+    const setter = (newVal: unknown) => {
+      if (_getter && !_setter) return
+      if (_setter) {
+        _setter.call(state, newVal)
       } else {
         value = newVal
       }
@@ -55,8 +51,8 @@ function defineReactive(state: IAnyObject) {
     Object.defineProperty(state, key, {
       configurable: true,
       enumerable: true,
-      get: _getter,
-      set: _setter,
+      get: getter,
+      set: setter,
     })
   }
 }

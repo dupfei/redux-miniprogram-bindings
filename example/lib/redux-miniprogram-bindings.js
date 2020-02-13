@@ -48,25 +48,24 @@ function defineReactive(state) {
         if (descriptor && descriptor.configurable === false) {
             throw new Error('Function 类型的 mapState 需要使用 defineProperty 进行依赖收集，请勿将 configurable 属性定义为 false');
         }
-        const getter = descriptor && descriptor.get;
-        if (getter &&
-            getter.__ob__) {
+        const _getter = descriptor && descriptor.get;
+        if (_getter && _getter.__ob__) {
             continue;
         }
-        const setter = descriptor && descriptor.set;
+        const _setter = descriptor && descriptor.set;
         let value = state[key];
-        const _getter = () => {
+        const getter = () => {
             if (updateDeps.indexOf(key) < 0) {
                 updateDeps.push(key);
             }
-            return getter ? getter.call(state) : value;
+            return _getter ? _getter.call(state) : value;
         };
-        _getter.__ob__ = true;
-        const _setter = (newVal) => {
-            if (getter && !setter)
+        getter.__ob__ = true;
+        const setter = (newVal) => {
+            if (_getter && !_setter)
                 return;
-            if (setter) {
-                setter.call(state, newVal);
+            if (_setter) {
+                _setter.call(state, newVal);
             }
             else {
                 value = newVal;
@@ -75,8 +74,8 @@ function defineReactive(state) {
         Object.defineProperty(state, key, {
             configurable: true,
             enumerable: true,
-            get: _getter,
-            set: _setter,
+            get: getter,
+            set: setter,
         });
     }
 }
