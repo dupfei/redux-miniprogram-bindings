@@ -3,15 +3,21 @@ import getProvider from '../provider'
 import batchUpdates from './batchUpdates'
 import { isArray } from '../utils'
 
+// 记录订阅和响应订阅的数量
+let subscriptionCount = 0
+let emitSubscriptionCount = 0
+
 export default function subscription(
   thisArg: PageComponentOption,
   mapState: MapState,
   updateDeps: string[]
 ) {
+  subscriptionCount += 1
   const { store } = getProvider()
 
   let prevState = store.getState()
   const listener = () => {
+    emitSubscriptionCount += 1
     const currState = store.getState()
     let ownStateChanges: IAnyObject | null = null
 
@@ -43,7 +49,18 @@ export default function subscription(
     }
 
     prevState = currState
+
+    if (emitSubscriptionCount === subscriptionCount) {
+      // 订阅已全部响应，此时可以执行更新
+      emitSubscriptionCount = 0
+      batchUpdates.exec()
+    }
   }
 
-  return store.subscribe(listener)
+  const unsubscribe = store.subscribe(listener)
+
+  return () => {
+    subscriptionCount -= 1
+    unsubscribe()
+  }
 }

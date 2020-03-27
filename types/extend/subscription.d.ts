@@ -3,4 +3,4 @@ export default function subscription(
   thisArg: PageComponentOption,
   mapState: MapState,
   updateDeps: string[]
-): import('redux').Unsubscribe
+): () => void

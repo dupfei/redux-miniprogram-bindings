@@ -325,10 +325,14 @@ class BatchUpdates {
 }
 var batchUpdates = new BatchUpdates();
 
+let subscriptionCount = 0;
+let emitSubscriptionCount = 0;
 function subscription(thisArg, mapState, updateDeps) {
+    subscriptionCount += 1;
     const { store } = getProvider();
     let prevState = store.getState();
     const listener = () => {
+        emitSubscriptionCount += 1;
         const currState = store.getState();
         let ownStateChanges = null;
         if (isArray(mapState)) {
@@ -355,8 +359,16 @@ function subscription(thisArg, mapState, updateDeps) {
             batchUpdates.push(thisArg, ownStateChanges);
         }
         prevState = currState;
+        if (emitSubscriptionCount === subscriptionCount) {
+            emitSubscriptionCount = 0;
+            batchUpdates.exec();
+        }
     };
-    return store.subscribe(listener);
+    const unsubscribe = store.subscribe(listener);
+    return () => {
+        subscriptionCount -= 1;
+        unsubscribe();
+    };
 }
 
 function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
