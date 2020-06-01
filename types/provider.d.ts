@@ -1,6 +1,3 @@
-export default function getProvider(): {
-  store: import('redux').Store<any, import('redux').AnyAction>
-  namespace: string
-  manual: boolean
-  lifetimes: Record<'page' | 'component', [string, string]>
-}
+import { Provider } from './types'
+export declare function setProvider(config: Provider): void
+export declare function getProvider(): Required<Provider>

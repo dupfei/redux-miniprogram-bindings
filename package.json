@@ -2,7 +2,7 @@
   "name": "redux-miniprogram-bindings",
   "version": "1.1.1",
   "description": "Redux binding utils for miniprogram",
-  "main": "./dist/redux-miniprogram-bindings.js",
+  "main": "./dist/redux-miniprogram-bindings.min.js",
   "types": "./types/index.d.ts",
   "scripts": {
     "dev": "cross-env NODE_ENV=development rollup -c --watch",
@@ -39,6 +39,7 @@
     ]
   },
   "devDependencies": {
+    "@rollup/plugin-replace": "^2.3.2",
     "cross-env": "^7.0.2",
     "husky": "^4.2.5",
     "lint-staged": "^10.2.7",

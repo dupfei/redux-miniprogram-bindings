@@ -8,24 +8,24 @@ export type IAnyObject = Record<string, unknown>
 
 export type IAnyArray = unknown[]
 
-type Platform = 'wechat' | 'alipay'
+export type Platform = 'wechat' | 'alipay'
 
-interface Provider {
-  platform?: Platform
+export interface Provider {
   store: Store
   namespace?: string
   manual?: boolean
 }
 
-export type PrivateProvider = Merge<Required<Omit<Provider, 'platform'>>, { lifetimes: Lifetimes }>
+export type PrivateProvider = Required<Provider>
 
-export type App = Merge<{ provider: Provider }, IAnyObject>
+export interface Target {
+  $$provider?: PrivateProvider
+  [extraProps: string]: unknown
+}
 
 type IType = 'page' | 'component'
 
-type Lifetimes = Record<IType, [string, string]>
-
-export type LifetimesSets = Record<Platform, Lifetimes>
+export type Lifetimes = Record<IType, [string, string]>
 
 export type MapStateArray = string[]
 export type MapStateFunction = (state: IAnyObject) => IAnyObject

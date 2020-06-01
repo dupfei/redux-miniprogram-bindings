@@ -8,4 +8,4 @@ export const increment = (step = 1) => ({ type: INCREMENT, step })
 
 export const decrement = (step = 1) => ({ type: DECREMENT, step })
 
-export const setCount = count => ({ type: SET_COUNT, count })
+export const setCount = (count) => ({ type: SET_COUNT, count })

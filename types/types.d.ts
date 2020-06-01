@@ -4,28 +4,19 @@ declare type Merge<T, U> = {
 }
 export declare type IAnyObject = Record<string, unknown>
 export declare type IAnyArray = unknown[]
-declare type Platform = 'wechat' | 'alipay'
-interface Provider {
-  platform?: Platform
+export declare type Platform = 'wechat' | 'alipay'
+export interface Provider {
   store: Store
   namespace?: string
   manual?: boolean
 }
-export declare type PrivateProvider = Merge<
-  Required<Omit<Provider, 'platform'>>,
-  {
-    lifetimes: Lifetimes
-  }
->
-export declare type App = Merge<
-  {
-    provider: Provider
-  },
-  IAnyObject
->
+export declare type PrivateProvider = Required<Provider>
+export interface Target {
+  $$provider?: PrivateProvider
+  [extraProps: string]: unknown
+}
 declare type IType = 'page' | 'component'
-declare type Lifetimes = Record<IType, [string, string]>
-export declare type LifetimesSets = Record<Platform, Lifetimes>
+export declare type Lifetimes = Record<IType, [string, string]>
 export declare type MapStateArray = string[]
 export declare type MapStateFunction = (state: IAnyObject) => IAnyObject
 export declare type MapState = MapStateArray | MapStateFunction

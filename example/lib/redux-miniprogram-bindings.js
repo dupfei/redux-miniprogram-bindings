@@ -1,35 +1,6 @@
-const LIFETIMES = {
-    wechat: {
-        page: ['onLoad', 'onUnload'],
-        component: ['attached', 'detached'],
-    },
-    alipay: {
-        page: ['onLoad', 'onUnload'],
-        component: ['didMount', 'didUnmount'],
-    },
-};
-let PROVIDER = null;
-function getProvider() {
-    if (!PROVIDER) {
-        const app = getApp();
-        if (!app) {
-            throw new Error('App 实例对象不存在');
-        }
-        const { provider } = app;
-        if (!provider) {
-            throw new Error('App 实例对象上不存在 provider 对象');
-        }
-        const { platform = 'wechat', store, namespace = '', manual = false } = provider;
-        if (platform && platform !== 'wechat' && platform !== 'alipay') {
-            throw new Error('platform 只能是 wechat 或 alipay');
-        }
-        if (!store) {
-            throw new Error('Redux 的 Store 实例对象不存在');
-        }
-        PROVIDER = { store, namespace, manual, lifetimes: LIFETIMES[platform] };
-    }
-    return PROVIDER;
-}
+const target =  wx ;
+const lifetimes =  { page: ['onLoad', 'onUnload'], component: ['attached', 'detached'] }
+    ;
 
 const isArray = Array.isArray;
 const isFunction = (value) => typeof value === 'function';
@@ -38,6 +9,26 @@ const isPlainObject = (value) => _toString.call(value) === '[object Object]';
 const getType = (value) => _toString.call(value);
 const getKeys = Object.keys;
 const isEmptyObject = (value) => getKeys(value).length < 1;
+const warn = (message) => {
+    throw new Error(message);
+};
+
+function setProvider(config) {
+    if (!isPlainObject(config)) {
+        warn('provider必须是一个Object');
+    }
+    const { store, namespace = '', manual = false } = config;
+    if (!store) {
+        warn('store必须为Redux的Store实例对象');
+    }
+    target.$$provider = { store, namespace, manual };
+}
+function getProvider() {
+    if (!target.$$provider) {
+        warn('请先设置provider');
+    }
+    return target.$$provider;
+}
 
 let updateDeps = [];
 function defineReactive(state) {
@@ -372,7 +363,7 @@ function subscription(thisArg, mapState, updateDeps) {
 }
 
 function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
-    const { namespace, manual: manualDefaults, lifetimes } = getProvider();
+    const { namespace, manual: manualDefaults } = getProvider();
     if (type && type !== 'page' && type !== 'component') {
         throw new Error('type 属性只能是 page 或 component');
     }
@@ -420,4 +411,4 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
 const useStore = () => getProvider().store;
 const useDispatch = () => getProvider().store.dispatch;
 
-export { connect, useDispatch, useStore };
+export { connect, setProvider, useDispatch, useStore };

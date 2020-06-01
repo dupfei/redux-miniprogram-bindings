@@ -19,8 +19,9 @@
 - 通过 `npm` 或 `yarn` 安装
 
   ```bash
+  # npm
   npm install --save redux redux-miniprogram-bindings
-
+  # yarn
   yarn add redux redux-miniprogram-bindings
   ```
 
@@ -30,16 +31,21 @@
 
 1. 创建 `Redux` 的 `Store` 实例
 
-2. 在 `App()` 中通过 `provider` 字段进行配置绑定 `store`
+2. 在 `App()` 中设置 `provider`
 
    ```js
    import store from 'your/store/path'
+   // 微信
+   import { setProvider } from 'redux-miniprogram-bindings'
+   // 支付宝
+   // import { setProvider } from 'redux-miniprogram-bindings/dist/redux-miniprogram-bindings.alipay.min.js'
 
-   App({
-     provider: {
-       store,
-     },
-   })
+   // 在其他代码之前调用
+   setProvider({ store })
+
+   // 其他的代码...
+
+   App({})
    ```
 
 3. 在页面中使用
@@ -74,11 +80,11 @@
 
    connect({
      type: 'component',
-     mapState: state => ({
+     mapState: (state) => ({
        data1: state.dependent,
        data2: state.state,
      }),
-     mapDispatch: dispatch => ({
+     mapDispatch: (dispatch) => ({
        methodsName1: () => dispatch(actionCreator1()),
        methodsName2: (...args) => dispatch(actionCreator2(...args)),
      }),
@@ -151,7 +157,7 @@
   - 函数形式：函数接收 `state` 作为参数，可通过 `state` 获取到最新的状态数据，该函数必须返回一个对象，对象中的每一项可以是任意值，一般是根据 `state` 组合的数据。该方式会为 `state` 数据定义监听，在初次执行 `mapState` 函数时收集更新依赖的 `state` 数据，只有当这些数据发生改变时才会重新执行函数，然后对函数返回的结果和现有 `data` 中的数据进行 `diff` 比较，确认发生改变后队列批量更新渲染
 
     ```js
-    mapState: state => ({
+    mapState: (state) => ({
       region: state.province + state.city + state.area,
       name: state.userInfo.name,
     })
@@ -183,7 +189,7 @@
   - 函数形式：函数接收 `dispatch` 作为参数，返回一个对象，包含自定义整理后的处理函数
 
     ```js
-    mapDispatch: dispatch => ({
+    mapDispatch: (dispatch) => ({
       methodsName1: () => dispatch(actionCreator1()),
       methodsName2: (...args) => dispatch(actionCreator2(...args)),
     })

@@ -5,7 +5,7 @@ import {
   IAnyObject,
   IAnyArray,
 } from '../types'
-import getProvider from '../provider'
+import { getProvider } from '../provider'
 import { isPlainObject, isFunction } from '../utils'
 
 function handleMapDispatchObject(mapDispatch: MapDispatchObject, target: IAnyObject) {

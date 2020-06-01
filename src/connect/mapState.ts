@@ -6,7 +6,7 @@ import {
   handleMapStateReturn,
   Getter,
 } from '../types'
-import getProvider from '../provider'
+import { getProvider } from '../provider'
 import { isArray, isFunction, isPlainObject, isEmptyObject, getKeys } from '../utils'
 
 let updateDeps: string[] = []

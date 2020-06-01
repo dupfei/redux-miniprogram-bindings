@@ -1,6 +1,5 @@
-const target =  wx ;
-const lifetimes =  { page: ['onLoad', 'onUnload'], component: ['attached', 'detached'] }
-    ;
+const target =  my;
+const lifetimes =  { page: ['onLoad', 'onUnload'], component: ['didMount', 'didUnmount'] };
 
 const isArray = Array.isArray;
 const isFunction = (value) => typeof value === 'function';

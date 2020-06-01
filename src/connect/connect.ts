@@ -1,6 +1,7 @@
 import { Unsubscribe } from 'redux'
 import { ConnectOption, PageComponentOption, IAnyObject, IAnyArray } from '../types'
-import getProvider from '../provider'
+import { getProvider } from '../provider'
+import { lifetimes } from '../platform'
 import handleMapState from './mapState'
 import handleMapDispatch from './mapDispatch'
 import diff from '../extend/diff'
@@ -16,7 +17,7 @@ export default function connect({
   mapDispatch,
   manual,
 }: ConnectOption = {}) {
-  const { namespace, manual: manualDefaults, lifetimes } = getProvider()
+  const { namespace, manual: manualDefaults } = getProvider()
 
   if (type && type !== 'page' && type !== 'component') {
     throw new Error('type 属性只能是 page 或 component')
@@ -48,7 +49,7 @@ export default function connect({
           namespace ? { [namespace]: ownState } : ownState
         )
 
-        options[onLoadKey] = function(...args: IAnyArray) {
+        options[onLoadKey] = function (...args: IAnyArray) {
           // 加载时 setData 依赖的 state 的最新值
           const diffData = diff(
             <IAnyObject>handleMapState(mapState, false)[0],
@@ -66,7 +67,7 @@ export default function connect({
           if (oldOnLoad) oldOnLoad.apply(this, args)
         }
 
-        options[onUnloadKey] = function() {
+        options[onUnloadKey] = function () {
           if (oldOnUnload) oldOnUnload.call(this)
 
           // 取消监听

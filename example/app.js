@@ -1,10 +1,10 @@
 import store from './store/index'
+import { setProvider } from './lib/redux-miniprogram-bindings'
 
-App({
-  provider: {
-    platform: 'wechat',
-    store,
-    namespace: '',
-    manual: false,
-  },
+setProvider({
+  store,
+  namespace: '',
+  manual: false,
 })
+
+App({})

@@ -1,5 +1,5 @@
 import { IAnyObject, MapState, PageComponentOption } from '../types'
-import getProvider from '../provider'
+import { getProvider } from '../provider'
 import batchUpdates from './batchUpdates'
 import { isArray } from '../utils'
 

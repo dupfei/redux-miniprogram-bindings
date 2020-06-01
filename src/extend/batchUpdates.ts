@@ -1,5 +1,5 @@
 import { QueueItem, IAnyObject, ICallback, PageComponentOption } from '../types'
-import getProvider from '../provider'
+import { getProvider } from '../provider'
 import diff from './diff'
 import { isFunction, isEmptyObject } from '../utils'
 

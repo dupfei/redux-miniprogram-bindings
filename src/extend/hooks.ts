@@ -1,4 +1,4 @@
-import getProvider from '../provider'
+import { getProvider } from '../provider'
 
 export const useStore = () => getProvider().store
 

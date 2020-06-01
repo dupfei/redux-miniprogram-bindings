@@ -14,3 +14,7 @@ export const getType = (value: unknown) => _toString.call(value)
 export const getKeys = Object.keys
 
 export const isEmptyObject = (value: IAnyObject) => getKeys(value).length < 1
+
+export const warn = (message: string) => {
+  throw new Error(message)
+}
