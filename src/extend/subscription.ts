@@ -1,19 +1,15 @@
 import { IAnyObject, MapState, PageComponentOption } from '../types'
-import { getProvider } from '../provider'
+import { useStore } from './hooks'
 import batchUpdates from './batchUpdates'
-import { isArray } from '../utils'
+import { isPlainObject, isEmptyObject } from '../utils'
 
 // 记录订阅和响应订阅的数量
 let subscriptionCount = 0
 let emitSubscriptionCount = 0
 
-export default function subscription(
-  thisArg: PageComponentOption,
-  mapState: MapState,
-  updateDeps: string[]
-) {
+export default function subscription(thisArg: PageComponentOption, mapState: MapState) {
   subscriptionCount += 1
-  const { store } = getProvider()
+  const store = useStore()
 
   let prevState = store.getState()
   const listener = () => {
@@ -21,24 +17,26 @@ export default function subscription(
     const currState = store.getState()
     let ownStateChanges: IAnyObject | null = null
 
-    if (isArray(mapState)) {
-      // 数组形式的 mapState 每次只查看依赖的 state 是否发生改变
-      for (let i = 0, len = mapState.length; i < len; i++) {
-        const key = mapState[i]
-        if (currState[key] !== prevState[key]) {
-          if (!ownStateChanges) {
-            ownStateChanges = {}
+    for (let i = 0, len = mapState.length; i < len; i++) {
+      const curr = mapState[i]
+      switch (typeof curr) {
+        case 'string': {
+          if (currState[curr] !== prevState[curr]) {
+            if (!ownStateChanges) {
+              ownStateChanges = {}
+            }
+            ownStateChanges[curr] = currState[curr]
           }
-          ownStateChanges[key] = currState[key]
+          break
         }
-      }
-    } else {
-      // 根据依赖项的值是否改变判断是否需要更新
-      for (let i = 0, l = updateDeps.length; i < l; i++) {
-        const key = updateDeps[i]
-        if (currState[key] !== prevState[key]) {
-          // 既然能进入监听，表示 mapState 函数返回的一定是一个非空对象
-          ownStateChanges = mapState(currState)
+        case 'function': {
+          const funcResult = curr(currState)
+          if (isPlainObject(funcResult) && !isEmptyObject(funcResult)) {
+            if (!ownStateChanges) {
+              ownStateChanges = {}
+            }
+            Object.assign(ownStateChanges, funcResult)
+          }
           break
         }
       }

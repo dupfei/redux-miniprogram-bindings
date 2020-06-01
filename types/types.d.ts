@@ -17,16 +17,7 @@ export interface Target {
 }
 declare type IType = 'page' | 'component'
 export declare type Lifetimes = Record<IType, [string, string]>
-export declare type MapStateArray = string[]
-export declare type MapStateFunction = (state: IAnyObject) => IAnyObject
-export declare type MapState = MapStateArray | MapStateFunction
-export interface Getter {
-  (): unknown
-  __ob__?: boolean
-}
-declare type OwnState = IAnyObject | null
-declare type UpdateDeps = string[] | null
-export declare type handleMapStateReturn = [OwnState, UpdateDeps]
+export declare type MapState = (string | ((state: IAnyObject) => IAnyObject))[]
 export declare type MapDispatchObject = Record<string, ActionCreator<AnyAction>>
 export declare type MapDispatchFunction = (dispatch: Dispatch) => Record<string, Function>
 export declare type MapDispatch = MapDispatchObject | MapDispatchFunction

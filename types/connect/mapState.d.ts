@@ -1,5 +1,2 @@
-import { MapState, handleMapStateReturn } from '../types'
-export default function handleMapState(
-  mapState: MapState,
-  collectDeps?: boolean
-): handleMapStateReturn
+import { MapState } from '../types'
+export default function handleMapState(mapState: MapState): Record<string, unknown>

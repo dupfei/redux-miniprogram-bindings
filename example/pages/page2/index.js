@@ -6,9 +6,11 @@ const dispatch = useDispatch()
 
 Page(
   connect({
-    mapState: (state) => ({
-      userName: state.userInfo.name,
-    }),
+    mapState: [
+      (state) => ({
+        userName: state.userInfo.name,
+      }),
+    ],
     manual: true,
   })({
     data: {

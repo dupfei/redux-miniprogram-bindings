@@ -3,10 +3,12 @@ import { setCount } from '../../store/actions/counter'
 import { setUserInfo } from '../../store/actions/userInfo'
 
 connect({
-  mapState: (state) => ({
-    counter: state.counter,
-    intro: `姓名：${state.userInfo.name}，年龄：${state.userInfo.age}`,
-  }),
+  mapState: [
+    'counter',
+    (state) => ({
+      intro: `姓名：${state.userInfo.name}，年龄：${state.userInfo.age}`,
+    }),
+  ],
   mapDispatch: (dispatch) => ({
     handleReset() {
       dispatch(setCount(0))
