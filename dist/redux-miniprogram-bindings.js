@@ -407,8 +407,14 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
         return manual ? options : isPage ? Page(options) : Component(options);
     };
 }
+const $page = (config = {}) => connect(Object.assign(Object.assign({}, config), { type: 'page' }));
+const $component = (config = {}) => connect(Object.assign(Object.assign({}, config), { type: 'component' }));
 
 const useStore = () => getProvider().store;
-const useDispatch = () => getProvider().store.dispatch;
+const useState = () => getProvider().store.getState();
+const useDispatch = () => {
+    const { store } = getProvider();
+    return store.dispatch.bind(store);
+};
 
-export { connect, setProvider, useDispatch, useStore };
+export { $component, $page, connect, setProvider, useDispatch, useState, useStore };

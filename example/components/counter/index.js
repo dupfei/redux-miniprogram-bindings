@@ -1,8 +1,7 @@
-import { connect } from '../../lib/redux-miniprogram-bindings'
+import { $component } from '../../lib/redux-miniprogram-bindings'
 import { increment, decrement } from '../../store/actions/counter'
 
-connect({
-  type: 'component',
+$component({
   mapState: ['counter'],
   mapDispatch: { increment, decrement },
 })({

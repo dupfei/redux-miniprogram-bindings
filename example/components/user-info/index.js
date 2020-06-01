@@ -1,6 +1,5 @@
-import { connect } from '../../lib/redux-miniprogram-bindings'
+import { $component } from '../../lib/redux-miniprogram-bindings'
 
-connect({
-  type: 'component',
+$component({
   mapState: ['userInfo'],
 })({})

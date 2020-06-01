@@ -3,20 +3,20 @@
 ![MIT 协议](https://img.shields.io/github/license/dpflying/redux-miniprogram-bindings)
 ![NPM 版本](https://img.shields.io/npm/v/redux-miniprogram-bindings)
 
-适用于小程序的 `Redux` 绑定辅助库
+适用于小程序的 [Redux](https://github.com/reduxjs/redux) 绑定辅助库
 
 ## 特性
 
-- `API` 简单灵活，只需一个 `connect` 即可轻松使用
+- API 简单灵活，只需一个 connect 即可轻松使用
 - 功能完善，提供了多种使用方式，可满足不同的需求和使用场景
-- 支持在 `XML` 页面中使用
-- 执行 `dispatch` 后所有未销毁的页面(组件)内状态自动更新，依赖的视图自动触发渲染，无需额外处理
-- 自动进行 `diff优化` 和 `批量队列更新` 处理，性能优异
+- 支持在 XML 页面中使用
+- 执行 dispatch 后所有未销毁的页面(或组件)内部状态自动更新，依赖的视图自动触发渲染
+- 自动进行 diff 优化和批量队列更新处理，性能优异
 - 同时支持 `微信小程序` 和 `支付宝小程序`
 
 ## 安装
 
-- 通过 `npm` 或 `yarn` 安装
+- 通过 npm 或 yarn 安装
 
   ```bash
   # npm
@@ -25,13 +25,13 @@
   yarn add redux redux-miniprogram-bindings
   ```
 
-- 也可以直接引用 `dist` 文件下的 `redux-miniprogram-bindings` 文件，同时引用 `redux` 文件
+- 也可以直接引入 dist 目录下的 redux-miniprogram-bindings 文件，同时需要引入 redux 文件
 
 ## 使用
 
-1. 创建 `Redux` 的 `Store` 实例
+1. 创建 Redux 的 Store 实例
 
-2. 在 `App()` 中设置 `provider`
+2. 在 app.js 中设置 provider
 
    ```js
    import store from 'your/store/path'
@@ -100,7 +100,7 @@
    })
    ```
 
-5. 在 `XML` 中使用
+5. 在 XML 中使用
 
    ```html
    <view>{{ data1 }}</view>
@@ -110,23 +110,24 @@
 
 ## API
 
-### **provider** - `store` 配置和绑定
+### setProvider - 配置 store
 
-- **platform**：`string`
+- store：`Object`
 
-  当前小程序运行平台，可选值：`wechat` | `alipay` ，默认值：`wechat`
+  Redux 的 Store 实例对象，必传
 
-- **store**：`Object`
+- namespace：`string`
 
-  `Redux` 的 `Store` 实例对象，必传
+  命名空间，默认为空。当设置命名空间后，会将所有依赖的 state 数据存放到以命名空间字段值为 key 的对象中，此时读取 state 值需要加上命名空间字段值
 
-- **namespace**：`string`
+  例如设置 `namespace: '$store'` ，那么在页面(或组件)中获取依赖的 state 值需要使用 `this.data.$store.xxx` 形式
 
-  命名空间，默认为空。当设置命名空间后，会将所有依赖的 `state` 数据存放到以命名空间字段值为 `key` 的对象中，此时读取 `state` 值需要加上命名空间字段值。例如设置 `namespace: '$store'` ，那么在页面(组件)中获取依赖的 `state` 值需要使用 `this.data.$store.xxx` 形式
+  > 命名空间存在的意义：
+  >
+  > - 明确知道哪些是 store 中的数据，哪些是 data 中的值；
+  > - store 中的数据更改必须通过 dispatch 触发，可以避免无意中使用 `this.setData` 造成 store 中数据更改，因为更新时需要加上命名空间
 
-  命名空间存在的意义：1、明确知道哪些是 `store` 中的数据，哪些是 `data` 中的值；2、`store` 中的数据更改必须通过 `dispatch` 触发，可以避免无意中使用 `this.setData` 造成 `store` 中数据更改，因为更新时需要加上命名空间
-
-- **manual**：`boolean`
+- manual：`boolean`
 
   是否手动注册 `Page` 和 `Component` ，默认为 `false`。当设置为 `true` 时，`connect` 会返回整理好的 `options` 对象，需要主动调用 `Page`、`Component` 进行实例注册。这为使用者自定义扩展提供了途径。如果 `connect` 中也配置了该属性，会覆盖此处的配置，以 `connect` 中的配置为准
 
@@ -138,13 +139,13 @@
   )
   ```
 
-### **connect** - 连接 `store`
+### connect - 连接 store
 
-- **type**：`string`
+- type：`string`
 
   所连接实例的类型，可选值：`page` | `component`，默认值：`page`
 
-- **mapState**：`string[] | state => Object`
+- mapState：`string[] | state => Object`
 
   依赖的 `state`，可选。会将依赖的 `store` 数据注入到 `data` 中，自动更新
 
@@ -163,7 +164,7 @@
     })
     ```
 
-- **mapDispatch**：`Object | dispatch => Object`
+- mapDispatch：`Object | dispatch => Object`
 
   注入可执行的 `dispatch` 处理函数或任意函数，可选
 
@@ -205,13 +206,31 @@
     <view bind:tap="handleAdd">Add</view>
     ```
 
-- **manual**：`boolean`
+- manual：`boolean`
 
   是否手动注册 `Page` 和 `Component` ，默认值为 `provider` 中配置的值或 `false` ，优先级高于 `provider` 中的配置
 
-### **useStore** - 获取 `store` 实例对象
+### \$page - connect Page 的别名
 
-调用时请确保已经调用 `App()` ，如果在 `App()` 调用之前调用将无法获取到 `App` 实例对象
+```js
+$page()({})
+// 相当于
+connect({ type: 'page' })({})
+```
+
+### \$component - connect Component 的别名
+
+```js
+$component()({})
+// 相当于
+connect({ type: 'component' })({})
+```
+
+### Utils
+
+一些工具函数，调用时请确保已经在 app.js 中调用 setProvider()
+
+#### useStore - 获取 store 实例对象
 
 ```js
 import { useStore } from 'redux-miniprogram-bindings'
@@ -220,7 +239,15 @@ const store = useStore()
 store.getState()
 ```
 
-### **useDispatch** - 获取 `dispatch` 函数
+#### useState - 获取当前 state 对象
+
+```js
+import { useState } from 'redux-miniprogram-bindings'
+
+const state = useState()
+```
+
+#### useDispatch - 获取 dispatch 函数
 
 ```js
 import { useDispatch } from 'redux-miniprogram-bindings'
@@ -229,6 +256,6 @@ const dispatch = useDispatch()
 dispatch(action)
 ```
 
-## `diff` 逻辑
+## diff 逻辑
 
 ![diff逻辑](./diff.svg)

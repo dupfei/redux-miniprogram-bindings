@@ -2,4 +2,10 @@ import { getProvider } from '../provider'
 
 export const useStore = () => getProvider().store
 
-export const useDispatch = () => getProvider().store.dispatch
+export const useState = () => getProvider().store.getState()
+
+export const useDispatch = () => {
+  const { store } = getProvider()
+
+  return store.dispatch.bind(store)
+}

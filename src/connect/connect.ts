@@ -87,3 +87,7 @@ export default function connect({
     return manual ? options : isPage ? Page(options) : Component(options)
   }
 }
+
+export const $page = (config: ConnectOption = {}) => connect({ ...config, type: 'page' })
+
+export const $component = (config: ConnectOption = {}) => connect({ ...config, type: 'component' })
