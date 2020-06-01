@@ -1,7 +1,7 @@
-import { IAnyObject, ICallback, PageComponentOption } from '../types'
+import { IAnyObject, PageComponentOption } from '../types'
 declare class BatchUpdates {
   private queue
-  push(thisArg: PageComponentOption, data: IAnyObject, callback?: ICallback): void
+  push(thisArg: PageComponentOption, data: IAnyObject): void
   exec(): void
 }
 declare const _default: BatchUpdates

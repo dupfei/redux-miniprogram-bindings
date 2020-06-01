@@ -8,7 +8,6 @@ export function setProvider(config: Provider) {
   }
 
   const { store, namespace = '', manual = false } = config
-
   if (!store) {
     warn('store必须为Redux的Store实例对象')
   }

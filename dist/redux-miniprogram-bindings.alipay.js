@@ -1,7 +1,6 @@
 const target =  my;
 const lifetimes =  { page: ['onLoad', 'onUnload'], component: ['didMount', 'didUnmount'] };
 
-const isBoolean = (value) => typeof value === 'boolean';
 const isFunction = (value) => typeof value === 'function';
 const isArray = Array.isArray;
 const _toString = Object.prototype.toString;
@@ -63,8 +62,10 @@ function handleMapState(mapState) {
 }
 
 function handleMapDispatchObject(mapDispatch, target) {
-    const { dispatch } = getProvider().store;
-    for (const key in mapDispatch) {
+    const dispatch = useDispatch();
+    const keys = getKeys(mapDispatch);
+    for (let i = 0, len = keys.length; i < len; i++) {
+        const key = keys[i];
         const actionCreator = mapDispatch[key];
         if (isFunction(actionCreator)) {
             target[key] = (...args) => dispatch(actionCreator.apply(null, args));
@@ -72,11 +73,13 @@ function handleMapDispatchObject(mapDispatch, target) {
     }
 }
 function handleMapDispatchFunction(mapDispatch, target) {
-    const boundActionCreators = mapDispatch(getProvider().store.dispatch);
+    const boundActionCreators = mapDispatch(useDispatch());
     if (!isPlainObject(boundActionCreators)) {
-        throw new Error('mapDispatch 函数必须返回一个对象');
+        warn('mapDispatch函数必须返回一个对象');
     }
-    Object.assign(target, boundActionCreators);
+    if (!isEmptyObject(boundActionCreators)) {
+        Object.assign(target, boundActionCreators);
+    }
 }
 function handleMapDispatch(mapDispatch, target) {
     if (isPlainObject(mapDispatch)) {
@@ -219,7 +222,7 @@ class BatchUpdates {
     constructor() {
         this.queue = [];
     }
-    push(thisArg, data, callback) {
+    push(thisArg, data) {
         const queue = this.queue;
         let queueItem = null;
         for (let i = 0, len = queue.length; i < len; i++) {
@@ -229,13 +232,10 @@ class BatchUpdates {
             }
         }
         if (!queueItem) {
-            queueItem = { thisArg, data: {}, callbacks: [] };
+            queueItem = { thisArg, data: {} };
             queue.push(queueItem);
         }
         Object.assign(queueItem.data, data);
-        if (isFunction(callback)) {
-            queueItem.callbacks.push(callback);
-        }
         Promise.resolve().then(this.exec.bind(this));
     }
     exec() {
@@ -247,42 +247,31 @@ class BatchUpdates {
         for (let i = 0, len = queue.length; i < len; i++) {
             const queueItem = queue[i];
             const { thisArg, data } = queueItem;
-            const diffData = diff(data, (namespace ? thisArg.data[namespace] : thisArg.data), namespace);
+            const prevData = namespace ? thisArg.data[namespace] : thisArg.data;
+            const diffData = diff(data, prevData, namespace);
             if (!isEmptyObject(diffData)) {
                 queueItem.diffData = diffData;
             }
         }
         let queueItem;
         while ((queueItem = queue.shift())) {
-            const { thisArg, diffData, callbacks } = queueItem;
-            let callback;
-            if (callbacks.length > 0) {
-                callback = () => {
-                    let cb;
-                    while ((cb = callbacks.shift())) {
-                        cb();
-                    }
-                };
-            }
+            const { thisArg, diffData } = queueItem;
             if (diffData) {
-                thisArg.setData(diffData, callback);
-            }
-            else if (callback) {
-                callback();
+                thisArg.setData(diffData);
             }
         }
     }
 }
 var batchUpdates = new BatchUpdates();
 
-let subscriptionCount = 0;
-let emitSubscriptionCount = 0;
+let trackCount = 0;
+let triggerCount = 0;
 function subscription(thisArg, mapState) {
-    subscriptionCount += 1;
+    trackCount += 1;
     const store = useStore();
     let prevState = store.getState();
-    const listener = () => {
-        emitSubscriptionCount += 1;
+    const unsubscribe = store.subscribe(() => {
+        triggerCount += 1;
         const currState = store.getState();
         let ownStateChanges = null;
         for (let i = 0, len = mapState.length; i < len; i++) {
@@ -313,14 +302,13 @@ function subscription(thisArg, mapState) {
             batchUpdates.push(thisArg, ownStateChanges);
         }
         prevState = currState;
-        if (emitSubscriptionCount === subscriptionCount) {
-            emitSubscriptionCount = 0;
+        if (triggerCount === trackCount) {
+            triggerCount = 0;
             batchUpdates.exec();
         }
-    };
-    const unsubscribe = store.subscribe(listener);
+    });
     return () => {
-        subscriptionCount -= 1;
+        trackCount -= 1;
         unsubscribe();
     };
 }
@@ -331,7 +319,7 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
     }
     const isPage = type === 'page';
     const { namespace, manual: manualDefaults } = getProvider();
-    if (!isBoolean(manual)) {
+    if (typeof manual !== 'boolean') {
         manual = manualDefaults;
     }
     return function processOption(options) {

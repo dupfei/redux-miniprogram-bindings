@@ -6,7 +6,7 @@ import handleMapState from './mapState'
 import handleMapDispatch from './mapDispatch'
 import diff from '../extend/diff'
 import subscription from '../extend/subscription'
-import { warn, isEmptyObject, isBoolean, isArray } from '../utils'
+import { warn, isArray, isEmptyObject } from '../utils'
 
 declare const Page: (options: PageComponentOption) => void
 declare const Component: (options: PageComponentOption) => void
@@ -24,7 +24,7 @@ export default function connect({
   const isPage = type === 'page'
   const { namespace, manual: manualDefaults } = getProvider()
 
-  if (!isBoolean(manual)) {
+  if (typeof manual !== 'boolean') {
     // 使用全局默认值
     manual = manualDefaults
   }

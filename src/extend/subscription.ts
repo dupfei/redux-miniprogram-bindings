@@ -4,16 +4,16 @@ import batchUpdates from './batchUpdates'
 import { isPlainObject, isEmptyObject } from '../utils'
 
 // 记录订阅和响应订阅的数量
-let subscriptionCount = 0
-let emitSubscriptionCount = 0
+let trackCount = 0
+let triggerCount = 0
 
 export default function subscription(thisArg: PageComponentOption, mapState: MapState) {
-  subscriptionCount += 1
+  trackCount += 1
   const store = useStore()
 
   let prevState = store.getState()
-  const listener = () => {
-    emitSubscriptionCount += 1
+  const unsubscribe = store.subscribe(() => {
+    triggerCount += 1
     const currState = store.getState()
     let ownStateChanges: IAnyObject | null = null
 
@@ -48,17 +48,15 @@ export default function subscription(thisArg: PageComponentOption, mapState: Map
 
     prevState = currState
 
-    if (emitSubscriptionCount === subscriptionCount) {
+    if (triggerCount === trackCount) {
       // 订阅已全部响应，此时可以执行更新
-      emitSubscriptionCount = 0
+      triggerCount = 0
       batchUpdates.exec()
     }
-  }
-
-  const unsubscribe = store.subscribe(listener)
+  })
 
   return () => {
-    subscriptionCount -= 1
+    trackCount -= 1
     unsubscribe()
   }
 }

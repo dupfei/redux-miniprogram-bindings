@@ -8,8 +8,6 @@ export type IAnyObject = Record<string, unknown>
 
 export type IAnyArray = unknown[]
 
-export type Platform = 'wechat' | 'alipay'
-
 export interface Provider {
   store: Store
   namespace?: string
@@ -18,10 +16,7 @@ export interface Provider {
 
 export type PrivateProvider = Required<Provider>
 
-export interface Target {
-  $$provider?: PrivateProvider
-  [extraProps: string]: unknown
-}
+export type Target = Merge<{ $$provider?: PrivateProvider }, IAnyObject>
 
 type IType = 'page' | 'component'
 
@@ -40,12 +35,12 @@ export interface ConnectOption {
   manual?: boolean
 }
 
-export type ICallback = () => void
-
-export type SetData = (data: IAnyObject, callback?: ICallback) => void
-
 export type PageComponentOption = Merge<
-  { data?: IAnyObject; setData: SetData; methods?: Record<string, Function> },
+  {
+    data?: IAnyObject
+    methods?: Record<string, Function>
+    setData: (data: IAnyObject, callback?: () => void) => void
+  },
   IAnyObject
 >
 
@@ -53,5 +48,4 @@ export interface QueueItem {
   thisArg: PageComponentOption
   data: IAnyObject
   diffData?: IAnyObject
-  callbacks: ICallback[]
 }

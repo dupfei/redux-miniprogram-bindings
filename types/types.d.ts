@@ -4,17 +4,18 @@ declare type Merge<T, U> = {
 }
 export declare type IAnyObject = Record<string, unknown>
 export declare type IAnyArray = unknown[]
-export declare type Platform = 'wechat' | 'alipay'
 export interface Provider {
   store: Store
   namespace?: string
   manual?: boolean
 }
 export declare type PrivateProvider = Required<Provider>
-export interface Target {
-  $$provider?: PrivateProvider
-  [extraProps: string]: unknown
-}
+export declare type Target = Merge<
+  {
+    $$provider?: PrivateProvider
+  },
+  IAnyObject
+>
 declare type IType = 'page' | 'component'
 export declare type Lifetimes = Record<IType, [string, string]>
 export declare type MapState = (string | ((state: IAnyObject) => IAnyObject))[]
@@ -27,13 +28,11 @@ export interface ConnectOption {
   mapDispatch?: MapDispatch
   manual?: boolean
 }
-export declare type ICallback = () => void
-export declare type SetData = (data: IAnyObject, callback?: ICallback) => void
 export declare type PageComponentOption = Merge<
   {
     data?: IAnyObject
-    setData: SetData
     methods?: Record<string, Function>
+    setData: (data: IAnyObject, callback?: () => void) => void
   },
   IAnyObject
 >
@@ -41,6 +40,5 @@ export interface QueueItem {
   thisArg: PageComponentOption
   data: IAnyObject
   diffData?: IAnyObject
-  callbacks: ICallback[]
 }
 export {}

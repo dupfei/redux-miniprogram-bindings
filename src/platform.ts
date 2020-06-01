@@ -1,6 +1,6 @@
-import { Platform, Target, Lifetimes } from './types'
+import { Target, Lifetimes } from './types'
 
-declare const __PLATFORM__: Platform
+declare const __PLATFORM__: 'wechat' | 'alipay'
 declare const wx: Target
 declare const my: Target
 
