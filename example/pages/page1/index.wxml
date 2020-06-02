@@ -6,6 +6,11 @@
 <view class="gap">页面内用户信息：{{ intro }}</view>
 <user-info></user-info>
 
+<view style="margin-top: 24rpx; display: flex; align-items: center;">
+  <input value="{{ inputValue }}" placeholder="请输入用户名" bindinput="handleInput" />
+  <button type="primary" bind:tap="updateUserName">更新用户名</button>
+</view>
+
 <navigator class="gap" hover-class="none" url="../page2/index">
   <button type="primary">页面跳转</button>
 </navigator>

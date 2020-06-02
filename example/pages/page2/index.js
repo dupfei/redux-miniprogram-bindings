@@ -1,8 +1,5 @@
-import { connect, useStore, useDispatch } from '../../lib/redux-miniprogram-bindings'
+import { connect, useState, useDispatch, useSubscribe } from '../../lib/redux-miniprogram-bindings'
 import { setUserInfo } from '../../store/actions/userInfo'
-
-const store = useStore()
-const dispatch = useDispatch()
 
 Page(
   connect({
@@ -19,10 +16,18 @@ Page(
 
     onLoad() {
       console.log('onLoad', this.data.userName)
+      // 启用订阅
+      this.unsubscribe = useSubscribe((currState, prevState) => {
+        if (currState.userInfo.name !== prevState.userInfo.name) {
+          console.log('userName change')
+        }
+      })
     },
 
     onUnload() {
       console.log('onUnload', this.data.userName)
+      // 解除订阅
+      this.unsubscribe()
     },
 
     handleInput(e) {
@@ -31,10 +36,11 @@ Page(
       })
     },
     updateUserName() {
-      const { userInfo } = store.getState()
+      const state = useState()
+      const dispatch = useDispatch()
       dispatch(
         setUserInfo({
-          ...userInfo,
+          ...state.userInfo,
           name: this.data.inputValue,
         }),
       )

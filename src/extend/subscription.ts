@@ -1,5 +1,5 @@
 import { IAnyObject, MapState, PageComponentOption } from '../types'
-import { useStore } from './hooks'
+import { useSubscribe } from './hooks'
 import batchUpdates from './batchUpdates'
 import { isPlainObject, isEmptyObject } from '../utils'
 
@@ -9,14 +9,9 @@ let triggerCount = 0
 
 export default function subscription(thisArg: PageComponentOption, mapState: MapState) {
   trackCount += 1
-  const store = useStore()
 
-  let prevState = store.getState()
-  const unsubscribe = store.subscribe(() => {
-    triggerCount += 1
-    const currState = store.getState()
+  const unsubscribe = useSubscribe((currState, prevState) => {
     let ownStateChanges: IAnyObject | undefined
-
     for (let i = 0, len = mapState.length; i < len; i++) {
       const curr = mapState[i]
       switch (typeof curr) {
@@ -41,13 +36,11 @@ export default function subscription(thisArg: PageComponentOption, mapState: Map
         }
       }
     }
-
     if (ownStateChanges) {
       batchUpdates.push(thisArg, ownStateChanges)
     }
 
-    prevState = currState
-
+    triggerCount += 1
     if (triggerCount === trackCount) {
       // 订阅已全部响应，此时可以执行更新
       triggerCount = 0

@@ -1,4 +1,4 @@
-import { connect } from '../../lib/redux-miniprogram-bindings'
+import { connect, useState, useDispatch } from '../../lib/redux-miniprogram-bindings'
 import { setCount } from '../../store/actions/counter'
 import { setUserInfo } from '../../store/actions/userInfo'
 
@@ -18,6 +18,10 @@ connect({
     },
   }),
 })({
+  data: {
+    inputValue: '',
+  },
+
   onLoad() {
     setTimeout(() => {
       this.updateUserInfo({
@@ -29,5 +33,24 @@ connect({
         age: 26,
       })
     }, 3000)
+  },
+
+  handleInput(e) {
+    this.setData({
+      inputValue: e.detail.value,
+    })
+  },
+  updateUserName() {
+    const state = useState()
+    const dispatch = useDispatch()
+    dispatch(
+      setUserInfo({
+        ...state.userInfo,
+        name: this.data.inputValue,
+      }),
+    )
+    this.setData({
+      inputValue: '',
+    })
   },
 })

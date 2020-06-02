@@ -37,6 +37,15 @@ const useDispatch = () => {
     const { store } = getProvider();
     return store.dispatch.bind(store);
 };
+const useSubscribe = (handler) => {
+    const { store } = getProvider();
+    let prevState = store.getState();
+    return store.subscribe(() => {
+        const currState = store.getState();
+        handler(currState, prevState);
+        prevState = currState;
+    });
+};
 
 function handleMapState(mapState) {
     const state = useState();
@@ -268,11 +277,7 @@ let trackCount = 0;
 let triggerCount = 0;
 function subscription(thisArg, mapState) {
     trackCount += 1;
-    const store = useStore();
-    let prevState = store.getState();
-    const unsubscribe = store.subscribe(() => {
-        triggerCount += 1;
-        const currState = store.getState();
+    const unsubscribe = useSubscribe((currState, prevState) => {
         let ownStateChanges;
         for (let i = 0, len = mapState.length; i < len; i++) {
             const curr = mapState[i];
@@ -301,7 +306,7 @@ function subscription(thisArg, mapState) {
         if (ownStateChanges) {
             batchUpdates.push(thisArg, ownStateChanges);
         }
-        prevState = currState;
+        triggerCount += 1;
         if (triggerCount === trackCount) {
             triggerCount = 0;
             batchUpdates.exec();
@@ -364,4 +369,4 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
 const $page = (config = {}) => connect(Object.assign(Object.assign({}, config), { type: 'page' }));
 const $component = (config = {}) => connect(Object.assign(Object.assign({}, config), { type: 'component' }));
 
-export { $component, $page, connect, setProvider, useDispatch, useState, useStore };
+export { $component, $page, connect, setProvider, useDispatch, useState, useStore, useSubscribe };

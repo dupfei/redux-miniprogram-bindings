@@ -137,7 +137,7 @@
   Page(
     connect({
       manual: true,
-    })({})
+    })({}),
   )
   ```
 
@@ -277,6 +277,32 @@ const state = useState()
 import { useDispatch } from 'redux-miniprogram-bindings'
 
 const dispatch = useDispatch()
+```
+
+#### useSubscribe - 添加 store 订阅
+
+useSubscribe 接收一个回调函数，该函数会在 store 数据发生改变时调用，该函数接收两个参数，分别是当前状态 currState 和之前状态 prevState，通过对比两者进行细化监听
+
+useSubscribe 返回一个函数，调用该函数终止订阅
+
+```js
+import { useSubscribe } from 'redux-miniprogram-bindings'
+
+$page()({
+  onLoad() {
+    // 启用订阅
+    this.unsubscribe = useSubscribe((currState, prevState) => {
+      if (currState.userInfo.name !== prevState.userInfo.name) {
+        console.log('userName change')
+      }
+    })
+  },
+
+  onUnload() {
+    // 解除订阅
+    this.unsubscribe()
+  },
+})
 ```
 
 ## diff 逻辑

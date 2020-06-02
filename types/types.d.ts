@@ -41,4 +41,5 @@ export interface QueueItem {
   data: IAnyObject
   diffData?: IAnyObject
 }
+export declare type SubscribeHandler = (currState: IAnyObject, prevState: IAnyObject) => void
 export {}
