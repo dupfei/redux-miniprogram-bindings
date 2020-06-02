@@ -9,7 +9,7 @@ class BatchUpdates {
   push(thisArg: PageComponentOption, data: IAnyObject) {
     const queue = this.queue
 
-    let queueItem: QueueItem | null = null
+    let queueItem: QueueItem | undefined
     for (let i = 0, len = queue.length; i < len; i++) {
       if (queue[i].thisArg === thisArg) {
         queueItem = queue[i]
@@ -35,9 +35,15 @@ class BatchUpdates {
 
     for (let i = 0, len = queue.length; i < len; i++) {
       const queueItem = queue[i]
-      const { thisArg, data } = queueItem
-      const prevData = namespace ? (<PageComponentOption>thisArg.data)[namespace] : thisArg.data
-      const diffData = diff(data, <IAnyObject>prevData, namespace)
+      const diffData = diff(
+        queueItem.data,
+        <IAnyObject>(
+          (namespace
+            ? (<PageComponentOption>queueItem.thisArg.data)[namespace]
+            : queueItem.thisArg.data)
+        ),
+        namespace,
+      )
       if (!isEmptyObject(diffData)) {
         queueItem.diffData = diffData
       }
@@ -45,9 +51,8 @@ class BatchUpdates {
 
     let queueItem: QueueItem | undefined
     while ((queueItem = queue.shift())) {
-      const { thisArg, diffData } = queueItem
-      if (diffData) {
-        thisArg.setData(diffData)
+      if (queueItem.diffData) {
+        queueItem.thisArg.setData(queueItem.diffData)
       }
     }
   }

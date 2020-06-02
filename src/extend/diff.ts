@@ -8,7 +8,7 @@ function diffObject(
   currData: IAnyObject,
   prevData: IAnyObject,
   result: IAnyObject,
-  rootPath: string
+  rootPath: string,
 ) {
   const currDataKeys = getKeys(currData)
   const prevDataKeys = getKeys(prevData)

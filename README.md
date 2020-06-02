@@ -9,41 +9,41 @@
 
 - API 简单灵活，只需一个 connect 即可轻松使用
 - 功能完善，提供了多种使用方式，可满足不同的需求和使用场景
-- 支持在 XML 页面中使用
-- 执行 dispatch 后所有未销毁的页面(或组件)内部状态自动更新，依赖的视图自动触发渲染
+- 支持在 XML 中使用
+- 执行 dispatch 后所有未销毁的页面(或组件)内部状态自动更新，视图自动更新渲染
 - 自动进行 diff 优化和批量队列更新处理，性能优异
 - 同时支持 `微信小程序` 和 `支付宝小程序`
 
 ## 安装
 
-- 通过 npm 或 yarn 安装
+- 通过 `npm` 或 `yarn` 安装
 
   ```bash
   # npm
-  npm install --save redux redux-miniprogram-bindings
+  $ npm install --save redux-miniprogram-bindings redux
   # yarn
-  yarn add redux redux-miniprogram-bindings
+  $ yarn add redux-miniprogram-bindings redux
   ```
 
-- 也可以直接引入 dist 目录下的 redux-miniprogram-bindings 文件，同时需要引入 redux 文件
+- 直接引入 `dist` 目录下对应的 `redux-miniprogram-bindings` 文件，同时需要引入 [redux](https://github.com/reduxjs/redux) 文件
 
 ## 使用
 
 1. 创建 Redux 的 Store 实例
 
-2. 在 app.js 中设置 provider
+2. 在 `app.js` 文件中设置 provider
 
    ```js
    import store from 'your/store/path'
-   // 微信
+   // 微信小程序
    import { setProvider } from 'redux-miniprogram-bindings'
-   // 支付宝
-   // import { setProvider } from 'redux-miniprogram-bindings/dist/redux-miniprogram-bindings.alipay.min.js'
+   // 支付宝小程序
+   import { setProvider } from 'redux-miniprogram-bindings/dist/redux-miniprogram-bindings.alipay.min.js'
 
-   // 在其他代码之前调用
+   // 在其它依赖 store 的代码之前调用
    setProvider({ store })
 
-   // 其他的代码...
+   // ...
 
    App({})
    ```
@@ -63,7 +63,7 @@
    })({
      onLoad() {
        // 读取 state 中的值
-       const dependent = this.data.dependent
+       const { dependent } = this.data
        // dispatch actionCreator1
        this.methodsName1()
        // dispatch actionCreator2
@@ -93,7 +93,7 @@
    })({
      attached() {
        // 读取 state 中的值
-       const dependent = this.data.data1
+       const { data1: dependent } = this.data
        // dispatch actionCreator1
        this.methodsName1()
        // dispatch actionCreator2
@@ -105,7 +105,7 @@
 5. 在 XML 中使用
 
    ```html
-   <view>{{ data1 }}</view>
+   <view wx:if="{{ data1 }}">{{ data2 }}</view>
    ```
 
 6. 详细用法请参考 [`API`](#API) 介绍和 [`示例`](https://github.com/DPFlying/redux-miniprogram-bindings/tree/master/example)
@@ -126,12 +126,12 @@
 
   > 命名空间存在的意义：
   >
-  > - 明确知道哪些是 store 中的数据，哪些是 data 中的值；
-  > - store 中的数据更改必须通过 dispatch 触发，可以避免无意中使用 `this.setData` 造成 store 中数据更改，因为更新时需要加上命名空间
+  > - 明确哪些是 store 中的数据，哪些是 data 中的数据
+  > - store 中的数据必须通过 dispatch 触发更新，可以避免无意中使用 `this.setData` 造成 store 中的数据更新，因为更新时需要加上额外的命名空间前缀
 
 - manual：`boolean`
 
-  是否手动注册 Page 和 Component，默认为 `false`。当设置为 `true` 时，connect 会返回整理好的 options 对象，需要主动调用 Page、Component 进行实例注册。这为使用者自定义扩展提供了途径。如果 connect 中也配置了该属性，会覆盖此处的配置，以 connect 中的配置为准
+  是否需要手动调用 `Page()` 和 `Component()`，默认为 `false`。当设置为 `true` 时，`connect` 会返回处理好的传入的 options 对象，需要主动调用 `Page()` 或 `Component()` 进行实例注册。这为使用者自定义扩展提供了途径。如果 `connect` 中也配置了该属性，会覆盖此处的配置，以 `connect` 中的配置为准
 
   ```js
   Page(
@@ -143,15 +143,15 @@
 
 ### connect - 连接 store
 
-- type：`string`
+- type：`"page" | "component"`
 
-  所连接实例的类型，可选值：`page` | `component`，默认值：`page`
+  所连接实例的类型，可选值：`page`、`component`，默认为 `page`
 
 - mapState：`(string | ((state: Object) => Object))[]`
 
-  依赖的 state，可选。会将依赖的 store 数据注入到 data 中，自动更新
+  实例依赖的 state，可选。会将依赖的 store 数据注入到 data 中，并在后续状态改变时自动更新
 
-  - 数组中的字符串：每一项字符串为依赖的 state 的相应 key 值，页面(或组件)会在依赖的 state 发生改变时自动更新状态和队列批量触发视图渲染
+  - 数组中的字符串：字符串为依赖的 state 的相应的 key 值，页面(或组件)会在依赖的 state 发生改变时自动更新状态和队列批量触发视图渲染
 
     ```js
     {
@@ -159,7 +159,9 @@
     }
     ```
 
-  - 数组中的函数：函数接收 state 作为参数，可通过 state 获取到最新的状态数据，该函数必须返回一个对象，对象中的每一项可以是任意值，一般是根据 state 组合的数据。该方式会在 store 数据发生改变时执行函数，然后对函数返回的结果和现有 data 中的数据进行 diff 比较，确认发生改变后队列批量更新渲染
+  - 数组中的函数：函数接收 state 作为参数，可通过 state 获取到最新的状态数据，该函数必须返回一个对象，对象中的每一项可以是任意值，一般是根据 state 组合的数据。该方式会在 store 数据发生改变(并非一定是当前实例依赖的状态发生改变)时执行函数，然后对函数返回的结果和现有 data 中的数据进行 diff 比较，确认发生改变后队列批量更新渲染
+
+    > 注意：函数会在每次 store 数据发生改变时调用，请确保函数足够的小和快。出于性能优化，建议多使用字符串形式，减少使用函数形式，必要时将两种形式混合使用。
 
     ```js
     {
@@ -189,7 +191,7 @@
 
   注入可执行的 dispatch 处理函数或任意函数，可选
 
-  - 对象形式：key 值为自定义函数名，实例内通过该名称调用该方法，value 值为 actionCreator 函数。会将 actionCreator 函数包装成自动调用 disptach 的函数，并注入到实例方法中
+  - 对象形式：key 值为自定义函数名，实例内部可以通过该名称访问该方法，value 值为 `actionCreator` 函数。会将 actionCreator 函数包装成自动调用 disptach 的函数，并注入到实例方法中
 
     ```js
     // 配置
@@ -223,15 +225,15 @@
     this.methodsName2(a, b, c)
     ```
 
-    > **注意：** 通过 mapDispatch 注入的函数也可以在 XML 中作为事件处理函数使用。如果函数需要传递参数时请注意，事件处理函数默认会传入 event 对象作为函数的第一个参数
+  > **注意：** 通过 mapDispatch 注入的函数也可以在 XML 中作为事件处理函数使用。如果函数需要传递参数时请注意，事件处理函数默认会传入 `event` 对象作为函数的第一个参数
 
-    ```html
-    <view bind:tap="handleAdd">Add</view>
-    ```
+  ```html
+  <view bind:tap="handleAdd">Add</view>
+  ```
 
 - manual：`boolean`
 
-  是否手动注册 Page 和 Component，默认值为 setProvider 中配置的值或 false，优先级高于 setProvider 中的配置
+  是否需要手动调用 `Page()` 或 `Component()`，默认值为 `setProvider` 中配置的值或 `false`
 
 ### \$page - connect Page 的别名
 
@@ -251,7 +253,7 @@ connect({ type: 'component' })({})
 
 ### Utils
 
-一些工具函数，调用时请确保已经在 app.js 中调用 setProvider()
+工具函数，调用时请确保已经在 `app.js` 文件中调用了 `setProvider`
 
 #### useStore - 获取 store 实例对象
 
@@ -259,7 +261,6 @@ connect({ type: 'component' })({})
 import { useStore } from 'redux-miniprogram-bindings'
 
 const store = useStore()
-store.getState()
 ```
 
 #### useState - 获取当前 state 对象
@@ -276,7 +277,6 @@ const state = useState()
 import { useDispatch } from 'redux-miniprogram-bindings'
 
 const dispatch = useDispatch()
-dispatch(action)
 ```
 
 ## diff 逻辑

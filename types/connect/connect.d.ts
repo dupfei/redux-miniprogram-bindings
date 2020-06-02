@@ -5,30 +5,30 @@ export default function connect({
   mapDispatch,
   manual,
 }?: ConnectOption): (
-  options: PageComponentOption
+  options: PageComponentOption,
 ) => void | {
   [x: string]: unknown
   data?: Record<string, unknown> | undefined
-  setData: import('../types').SetData
   methods?: Record<string, Function> | undefined
+  setData: (data: Record<string, unknown>, callback?: (() => void) | undefined) => void
 }
 export declare const $page: (
-  config?: ConnectOption
+  config?: ConnectOption,
 ) => (
-  options: PageComponentOption
+  options: PageComponentOption,
 ) => void | {
   [x: string]: unknown
   data?: Record<string, unknown> | undefined
-  setData: import('../types').SetData
   methods?: Record<string, Function> | undefined
+  setData: (data: Record<string, unknown>, callback?: (() => void) | undefined) => void
 }
 export declare const $component: (
-  config?: ConnectOption
+  config?: ConnectOption,
 ) => (
-  options: PageComponentOption
+  options: PageComponentOption,
 ) => void | {
   [x: string]: unknown
   data?: Record<string, unknown> | undefined
-  setData: import('../types').SetData
   methods?: Record<string, Function> | undefined
+  setData: (data: Record<string, unknown>, callback?: (() => void) | undefined) => void
 }

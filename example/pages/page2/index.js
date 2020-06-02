@@ -36,11 +36,11 @@ Page(
         setUserInfo({
           ...userInfo,
           name: this.data.inputValue,
-        })
+        }),
       )
       this.setData({
         inputValue: '',
       })
     },
-  })
+  }),
 )

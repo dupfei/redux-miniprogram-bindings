@@ -15,7 +15,7 @@ export default function subscription(thisArg: PageComponentOption, mapState: Map
   const unsubscribe = store.subscribe(() => {
     triggerCount += 1
     const currState = store.getState()
-    let ownStateChanges: IAnyObject | null = null
+    let ownStateChanges: IAnyObject | undefined
 
     for (let i = 0, len = mapState.length; i < len; i++) {
       const curr = mapState[i]
@@ -56,6 +56,7 @@ export default function subscription(thisArg: PageComponentOption, mapState: Map
   })
 
   return () => {
+    // 取消订阅
     trackCount -= 1
     unsubscribe()
   }

@@ -25,7 +25,6 @@ export default function connect({
   const { namespace, manual: manualDefaults } = getProvider()
 
   if (typeof manual !== 'boolean') {
-    // 使用全局默认值
     manual = manualDefaults
   }
 
@@ -43,17 +42,18 @@ export default function connect({
       // 向options的data选项中混入依赖的state的初始值
       options.data = Object.assign(
         options.data || {},
-        namespace ? { [namespace]: ownState } : ownState
+        namespace ? { [namespace]: ownState } : ownState,
       )
 
       options[onLoadKey] = function (...args: IAnyArray) {
         // 注入依赖的state的最新值
         const ownState = handleMapState(mapState)
         if (!isEmptyObject(ownState)) {
-          const data = (namespace
-            ? (<PageComponentOption>this.data)[namespace]
-            : this.data) as IAnyObject
-          const diffData = diff(ownState, data, namespace)
+          const diffData = diff(
+            ownState,
+            <IAnyObject>(namespace ? (<PageComponentOption>this.data)[namespace] : this.data),
+            namespace,
+          )
           if (!isEmptyObject(diffData)) {
             this.setData(diffData)
           }

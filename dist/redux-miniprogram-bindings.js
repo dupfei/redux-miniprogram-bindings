@@ -225,7 +225,7 @@ class BatchUpdates {
     }
     push(thisArg, data) {
         const queue = this.queue;
-        let queueItem = null;
+        let queueItem;
         for (let i = 0, len = queue.length; i < len; i++) {
             if (queue[i].thisArg === thisArg) {
                 queueItem = queue[i];
@@ -247,18 +247,17 @@ class BatchUpdates {
         const { namespace } = getProvider();
         for (let i = 0, len = queue.length; i < len; i++) {
             const queueItem = queue[i];
-            const { thisArg, data } = queueItem;
-            const prevData = namespace ? thisArg.data[namespace] : thisArg.data;
-            const diffData = diff(data, prevData, namespace);
+            const diffData = diff(queueItem.data, ((namespace
+                ? queueItem.thisArg.data[namespace]
+                : queueItem.thisArg.data)), namespace);
             if (!isEmptyObject(diffData)) {
                 queueItem.diffData = diffData;
             }
         }
         let queueItem;
         while ((queueItem = queue.shift())) {
-            const { thisArg, diffData } = queueItem;
-            if (diffData) {
-                thisArg.setData(diffData);
+            if (queueItem.diffData) {
+                queueItem.thisArg.setData(queueItem.diffData);
             }
         }
     }
@@ -274,7 +273,7 @@ function subscription(thisArg, mapState) {
     const unsubscribe = store.subscribe(() => {
         triggerCount += 1;
         const currState = store.getState();
-        let ownStateChanges = null;
+        let ownStateChanges;
         for (let i = 0, len = mapState.length; i < len; i++) {
             const curr = mapState[i];
             switch (typeof curr) {
@@ -335,10 +334,7 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
             options[onLoadKey] = function (...args) {
                 const ownState = handleMapState(mapState);
                 if (!isEmptyObject(ownState)) {
-                    const data = (namespace
-                        ? this.data[namespace]
-                        : this.data);
-                    const diffData = diff(ownState, data, namespace);
+                    const diffData = diff(ownState, (namespace ? this.data[namespace] : this.data), namespace);
                     if (!isEmptyObject(diffData)) {
                         this.setData(diffData);
                     }

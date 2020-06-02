@@ -2,7 +2,8 @@
   "printWidth": 100,
   "semi": false,
   "singleQuote": true,
-  "trailingComma": "es5",
+  "trailingComma": "all",
+  "arrowParens": "always",
   "overrides": [
     {
       "files": ["**/*.wxml"],

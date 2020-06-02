@@ -31,7 +31,7 @@ function handleMapDispatchFunction(mapDispatch: MapDispatchFunction, target: IAn
 }
 
 export default function handleMapDispatch(mapDispatch: MapDispatch, target: IAnyObject) {
-  if (isPlainObject<MapDispatchObject>(mapDispatch)) {
+  if (isPlainObject(mapDispatch)) {
     handleMapDispatchObject(mapDispatch, target)
   } else if (isFunction(mapDispatch)) {
     handleMapDispatchFunction(mapDispatch, target)
