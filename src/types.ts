@@ -51,3 +51,7 @@ export interface QueueItem {
 }
 
 export type SubscribeHandler = (currState: IAnyObject, prevState: IAnyObject) => void
+
+export type Selector<V> = (state: IAnyObject) => V
+
+export type Ref<V> = { value: V }

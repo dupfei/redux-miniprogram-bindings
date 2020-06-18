@@ -33,11 +33,11 @@ function getProvider() {
 
 const useStore = () => getProvider().store;
 const useState = () => getProvider().store.getState();
-const useDispatch = () => {
+function useDispatch() {
     const { store } = getProvider();
     return store.dispatch.bind(store);
-};
-const useSubscribe = (handler) => {
+}
+function useSubscribe(handler) {
     const { store } = getProvider();
     let prevState = store.getState();
     return store.subscribe(() => {
@@ -45,7 +45,19 @@ const useSubscribe = (handler) => {
         handler(currState, prevState);
         prevState = currState;
     });
-};
+}
+function useRef(selector) {
+    const { store } = getProvider();
+    const ref = {};
+    Object.defineProperty(ref, 'value', {
+        configurable: false,
+        enumerable: true,
+        get() {
+            return selector(store.getState());
+        },
+    });
+    return ref;
+}
 
 function handleMapState(mapState) {
     const state = useState();
@@ -369,4 +381,4 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
 const $page = (config = {}) => connect(Object.assign(Object.assign({}, config), { type: 'page' }));
 const $component = (config = {}) => connect(Object.assign(Object.assign({}, config), { type: 'component' }));
 
-export { $component, $page, connect, setProvider, useDispatch, useState, useStore, useSubscribe };
+export { $component, $page, connect, setProvider, useDispatch, useRef, useState, useStore, useSubscribe };

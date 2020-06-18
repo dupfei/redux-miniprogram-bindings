@@ -1,4 +1,4 @@
-import { connect, useState, useDispatch } from '../../lib/redux-miniprogram-bindings'
+import { connect, useState, useDispatch, useRef } from '../../lib/redux-miniprogram-bindings'
 import { setCount } from '../../store/actions/counter'
 import { setUserInfo } from '../../store/actions/userInfo'
 
@@ -23,6 +23,9 @@ connect({
   },
 
   onLoad() {
+    const userNameRef = useRef((state) => state.userInfo.name)
+    console.log('用户名', userNameRef.value)
+
     setTimeout(() => {
       this.updateUserInfo({
         name: '新用户名1',
@@ -32,6 +35,8 @@ connect({
         name: '新用户名2',
         age: 26,
       })
+
+      console.log('用户名', userNameRef.value)
     }, 3000)
   },
 

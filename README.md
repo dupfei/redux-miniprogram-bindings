@@ -305,6 +305,39 @@ $page()({
 })
 ```
 
+#### useRef - 获取状态的引用
+
+useRef 接收一个 selector 函数，该函数接收 state 作为参数，可以返回任意值(建议返回使用 state 组装的数据)
+
+useRef 返回一个 Ref 对象，该对象拥有一个只读的 value 属性，通过该属性可以得到 selector 函数返回的最新值
+
+```js
+const selector = (state) => state.userInfo.name
+const userNameRef = useRef(selector)
+
+setInterval(() => {
+  // 不管 state 数据是否发生改变
+  // 得到的永远是 state.userInfo.name 的最新值
+  console.log(userNameRef.value)
+}, 1000)
+```
+
+也可以通过如下方式实现相同功能
+
+```js
+import { useState } from 'redux-miniprogram-bindings'
+const selector = (state) => state.userInfo.name
+const getUserName = () => selector(useState())
+
+setInterval(() => {
+  // 不管 state 数据是否发生改变
+  // 得到的永远是 state.userInfo.name 的最新值
+  console.log(getUserName())
+}, 1000)
+```
+
+具体使用哪种方式完全看个人喜好，这里只是提供了一个工具方法
+
 ## diff 逻辑
 
 ![diff逻辑](./diff.svg)

@@ -42,4 +42,8 @@ export interface QueueItem {
   diffData?: IAnyObject
 }
 export declare type SubscribeHandler = (currState: IAnyObject, prevState: IAnyObject) => void
+export declare type Selector<V> = (state: IAnyObject) => V
+export declare type Ref<V> = {
+  value: V
+}
 export {}
