@@ -305,13 +305,14 @@ $page()({
 })
 ```
 
-#### useRef - 获取状态的引用
+#### useRef - 获取 state 对象中数据的引用
 
 useRef 接收一个 selector 函数，该函数接收 state 作为参数，可以返回任意值(建议返回使用 state 组装的数据)
 
 useRef 返回一个 Ref 对象，该对象拥有一个只读的 value 属性，通过该属性可以得到 selector 函数返回的最新值
 
 ```js
+import { useRef } from 'redux-miniprogram-bindings'
 const selector = (state) => state.userInfo.name
 const userNameRef = useRef(selector)
 
