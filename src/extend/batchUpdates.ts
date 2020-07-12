@@ -1,4 +1,4 @@
-import { QueueItem, IAnyObject, PageComponentOption } from '../types'
+import { QueueItem, IAnyObject, Context } from '../types'
 import { getProvider } from '../provider'
 import diff from './diff'
 import { isEmptyObject } from '../utils'
@@ -6,18 +6,19 @@ import { isEmptyObject } from '../utils'
 class BatchUpdates {
   private queue: QueueItem[] = []
 
-  push(thisArg: PageComponentOption, data: IAnyObject) {
+  push(context: Context, data: IAnyObject) {
     const queue = this.queue
 
     let queueItem: QueueItem | undefined
+    const contextId = context.id
     for (let i = 0, len = queue.length; i < len; i++) {
-      if (queue[i].thisArg === thisArg) {
+      if (queue[i].context.id === contextId) {
         queueItem = queue[i]
         break
       }
     }
     if (!queueItem) {
-      queueItem = { thisArg, data: {} }
+      queueItem = { context, data: {} }
       queue.push(queueItem)
     }
 
@@ -35,13 +36,10 @@ class BatchUpdates {
 
     for (let i = 0, len = queue.length; i < len; i++) {
       const queueItem = queue[i]
+      const { data: contextData } = queueItem.context
       const diffData = diff(
         queueItem.data,
-        <IAnyObject>(
-          (namespace
-            ? (<PageComponentOption>queueItem.thisArg.data)[namespace]
-            : queueItem.thisArg.data)
-        ),
+        namespace ? <IAnyObject>contextData[namespace] : contextData,
         namespace,
       )
       if (!isEmptyObject(diffData)) {
@@ -52,7 +50,7 @@ class BatchUpdates {
     let queueItem: QueueItem | undefined
     while ((queueItem = queue.shift())) {
       if (queueItem.diffData) {
-        queueItem.thisArg.setData(queueItem.diffData)
+        queueItem.context.setData(queueItem.diffData)
       }
     }
   }

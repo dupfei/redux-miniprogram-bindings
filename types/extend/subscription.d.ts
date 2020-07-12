@@ -1,2 +1,2 @@
-import { MapState, PageComponentOption } from '../types'
-export default function subscription(thisArg: PageComponentOption, mapState: MapState): () => void
+import { MapState, Context } from '../types'
+export default function subscription(context: Context, mapState: MapState): () => void

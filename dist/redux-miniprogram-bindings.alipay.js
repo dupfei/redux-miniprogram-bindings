@@ -243,17 +243,18 @@ class BatchUpdates {
     constructor() {
         this.queue = [];
     }
-    push(thisArg, data) {
+    push(context, data) {
         const queue = this.queue;
         let queueItem;
+        const contextId = context.id;
         for (let i = 0, len = queue.length; i < len; i++) {
-            if (queue[i].thisArg === thisArg) {
+            if (queue[i].context.id === contextId) {
                 queueItem = queue[i];
                 break;
             }
         }
         if (!queueItem) {
-            queueItem = { thisArg, data: {} };
+            queueItem = { context, data: {} };
             queue.push(queueItem);
         }
         Object.assign(queueItem.data, data);
@@ -267,9 +268,8 @@ class BatchUpdates {
         const { namespace } = getProvider();
         for (let i = 0, len = queue.length; i < len; i++) {
             const queueItem = queue[i];
-            const diffData = diff(queueItem.data, ((namespace
-                ? queueItem.thisArg.data[namespace]
-                : queueItem.thisArg.data)), namespace);
+            const { data: contextData } = queueItem.context;
+            const diffData = diff(queueItem.data, namespace ? contextData[namespace] : contextData, namespace);
             if (!isEmptyObject(diffData)) {
                 queueItem.diffData = diffData;
             }
@@ -277,7 +277,7 @@ class BatchUpdates {
         let queueItem;
         while ((queueItem = queue.shift())) {
             if (queueItem.diffData) {
-                queueItem.thisArg.setData(queueItem.diffData);
+                queueItem.context.setData(queueItem.diffData);
             }
         }
     }
@@ -286,7 +286,7 @@ var batchUpdates = new BatchUpdates();
 
 let trackCount = 0;
 let triggerCount = 0;
-function subscription(thisArg, mapState) {
+function subscription(context, mapState) {
     trackCount += 1;
     const unsubscribe = useSubscribe((currState, prevState) => {
         let ownStateChanges;
@@ -315,7 +315,7 @@ function subscription(thisArg, mapState) {
             }
         }
         if (ownStateChanges) {
-            batchUpdates.push(thisArg, ownStateChanges);
+            batchUpdates.push(context, ownStateChanges);
         }
         triggerCount += 1;
         if (triggerCount === trackCount) {
@@ -339,7 +339,6 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
         manual = manualDefaults;
     }
     return function processOption(options) {
-        options.$$type = type;
         if (isArray(mapState) && mapState.length > 0) {
             const ownState = handleMapState(mapState);
             const [onLoadKey, onUnloadKey] = lifetimes[type];
@@ -350,19 +349,23 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
             options[onLoadKey] = function (...args) {
                 const ownState = handleMapState(mapState);
                 if (!isEmptyObject(ownState)) {
-                    const diffData = diff(ownState, (namespace ? this.data[namespace] : this.data), namespace);
+                    const diffData = diff(ownState, namespace ? this.data[namespace] : this.data, namespace);
                     if (!isEmptyObject(diffData)) {
                         this.setData(diffData);
                     }
                 }
-                unsubscribe = subscription(this, mapState);
+                unsubscribe = subscription({
+                    id: Symbol('contextId'),
+                    data: this.data,
+                    setData: this.setData.bind(this),
+                }, mapState);
                 if (oldOnLoad) {
                     oldOnLoad.apply(this, args);
                 }
             };
             options[onUnloadKey] = function (...args) {
                 if (oldOnUnload) {
-                    oldOnUnload.call(this, args);
+                    oldOnUnload.apply(this, args);
                 }
                 if (unsubscribe) {
                     unsubscribe();

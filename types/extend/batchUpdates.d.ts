@@ -1,7 +1,7 @@
-import { IAnyObject, PageComponentOption } from '../types'
+import { IAnyObject, Context } from '../types'
 declare class BatchUpdates {
   private queue
-  push(thisArg: PageComponentOption, data: IAnyObject): void
+  push(context: Context, data: IAnyObject): void
   exec(): void
 }
 declare const _default: BatchUpdates

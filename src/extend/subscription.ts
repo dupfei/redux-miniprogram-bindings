@@ -1,4 +1,4 @@
-import { IAnyObject, MapState, PageComponentOption } from '../types'
+import { IAnyObject, MapState, Context } from '../types'
 import { useSubscribe } from './hooks'
 import batchUpdates from './batchUpdates'
 import { isPlainObject, isEmptyObject } from '../utils'
@@ -7,7 +7,7 @@ import { isPlainObject, isEmptyObject } from '../utils'
 let trackCount = 0
 let triggerCount = 0
 
-export default function subscription(thisArg: PageComponentOption, mapState: MapState) {
+export default function subscription(context: Context, mapState: MapState) {
   trackCount += 1
 
   const unsubscribe = useSubscribe((currState, prevState) => {
@@ -37,7 +37,7 @@ export default function subscription(thisArg: PageComponentOption, mapState: Map
       }
     }
     if (ownStateChanges) {
-      batchUpdates.push(thisArg, ownStateChanges)
+      batchUpdates.push(context, ownStateChanges)
     }
 
     triggerCount += 1

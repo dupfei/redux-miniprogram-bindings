@@ -1,5 +1,5 @@
 import { Unsubscribe } from 'redux'
-import { ConnectOption, PageComponentOption, IAnyObject, IAnyArray } from '../types'
+import { ConnectOption, PageComponentOption, IAnyObject, IAnyArray, RequiredSome } from '../types'
 import { getProvider } from '../provider'
 import { lifetimes } from '../platform'
 import handleMapState from './mapState'
@@ -29,9 +29,6 @@ export default function connect({
   }
 
   return function processOption(options: PageComponentOption) {
-    // 用于之后判断当前实例是页面还是组件
-    options.$$type = type
-
     if (isArray(mapState) && mapState.length > 0) {
       const ownState = handleMapState(mapState)
       const [onLoadKey, onUnloadKey] = lifetimes[type]
@@ -39,19 +36,22 @@ export default function connect({
       const oldOnUnload = <Function | undefined>options[onUnloadKey]
       let unsubscribe: Unsubscribe | null = null
 
-      // 向options的data选项中混入依赖的state的初始值
+      // 向 options.data 中混入依赖的 state 的初始值
       options.data = Object.assign(
         options.data || {},
         namespace ? { [namespace]: ownState } : ownState,
       )
 
-      options[onLoadKey] = function (...args: IAnyArray) {
-        // 注入依赖的state的最新值
+      options[onLoadKey] = function (
+        this: RequiredSome<PageComponentOption, 'data'>,
+        ...args: IAnyArray
+      ) {
+        // 注入依赖的 state 的最新值
         const ownState = handleMapState(mapState)
         if (!isEmptyObject(ownState)) {
           const diffData = diff(
             ownState,
-            <IAnyObject>(namespace ? (<PageComponentOption>this.data)[namespace] : this.data),
+            namespace ? <IAnyObject>this.data[namespace] : this.data,
             namespace,
           )
           if (!isEmptyObject(diffData)) {
@@ -59,8 +59,15 @@ export default function connect({
           }
         }
 
-        // 监听依赖的state的改变
-        unsubscribe = subscription(this, mapState)
+        // 监听依赖的 state 的改变
+        unsubscribe = subscription(
+          {
+            id: Symbol('contextId'),
+            data: this.data,
+            setData: this.setData.bind(this),
+          },
+          mapState,
+        )
 
         if (oldOnLoad) {
           oldOnLoad.apply(this, args)
@@ -69,7 +76,7 @@ export default function connect({
 
       options[onUnloadKey] = function (...args: IAnyArray) {
         if (oldOnUnload) {
-          oldOnUnload.call(this, args)
+          oldOnUnload.apply(this, args)
         }
 
         // 取消监听
