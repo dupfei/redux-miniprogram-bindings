@@ -1,6 +1,6 @@
 {
   "name": "redux-miniprogram-bindings",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Redux binding utils for miniprogram",
   "main": "./dist/redux-miniprogram-bindings.min.js",
   "types": "./types/index.d.ts",

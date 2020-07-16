@@ -345,7 +345,7 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
             const [onLoadKey, onUnloadKey] = lifetimes[type];
             const oldOnLoad = options[onLoadKey];
             const oldOnUnload = options[onUnloadKey];
-            let unsubscribe = null;
+            const unsubscribeMap = new Map();
             options.data = Object.assign(options.data || {}, namespace ? { [namespace]: ownState } : ownState);
             options[onLoadKey] = function (...args) {
                 const ownState = handleMapState(mapState);
@@ -355,11 +355,10 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
                         this.setData(diffData);
                     }
                 }
-                unsubscribe = subscription({
-                    id: Symbol('contextId'),
-                    data: this.data,
-                    setData: this.setData.bind(this),
-                }, mapState);
+                const id = Symbol('instanceId');
+                const unsubscribe = subscription({ id, data: this.data, setData: this.setData.bind(this) }, mapState);
+                unsubscribeMap.set(id, unsubscribe);
+                this.$$instanceId = id;
                 if (oldOnLoad) {
                     oldOnLoad.apply(this, args);
                 }
@@ -368,9 +367,11 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
                 if (oldOnUnload) {
                     oldOnUnload.apply(this, args);
                 }
-                if (unsubscribe) {
+                const id = this.$$instanceId;
+                if (unsubscribeMap.has(id)) {
+                    const unsubscribe = unsubscribeMap.get(id);
+                    unsubscribeMap.delete(id);
                     unsubscribe();
-                    unsubscribe = null;
                 }
             };
         }

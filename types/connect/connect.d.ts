@@ -11,6 +11,7 @@ export default function connect({
   data?: Record<string, unknown> | undefined
   methods?: Record<string, Function> | undefined
   setData: (data: Record<string, unknown>, callback?: (() => void) | undefined) => void
+  $$instanceId: symbol
 }
 export declare const $page: (
   config?: ConnectOption,
@@ -21,6 +22,7 @@ export declare const $page: (
   data?: Record<string, unknown> | undefined
   methods?: Record<string, Function> | undefined
   setData: (data: Record<string, unknown>, callback?: (() => void) | undefined) => void
+  $$instanceId: symbol
 }
 export declare const $component: (
   config?: ConnectOption,
@@ -31,4 +33,5 @@ export declare const $component: (
   data?: Record<string, unknown> | undefined
   methods?: Record<string, Function> | undefined
   setData: (data: Record<string, unknown>, callback?: (() => void) | undefined) => void
+  $$instanceId: symbol
 }

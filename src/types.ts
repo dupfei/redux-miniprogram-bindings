@@ -44,6 +44,7 @@ export type PageComponentOption = Merge<
     data?: IAnyObject
     methods?: Record<string, Function>
     setData: SetData
+    $$instanceId: symbol
   },
   IAnyObject
 >
