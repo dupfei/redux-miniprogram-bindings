@@ -6,7 +6,7 @@ import {
   IAnyArray,
 } from '../types'
 import { useDispatch } from '../extend/hooks'
-import { isPlainObject, isFunction, getKeys, warn, isEmptyObject } from '../utils'
+import { isPlainObject, isFunction, getKeys, warn } from '../utils'
 
 function handleMapDispatchObject(mapDispatch: MapDispatchObject, target: IAnyObject) {
   const dispatch = useDispatch()
@@ -25,9 +25,7 @@ function handleMapDispatchFunction(mapDispatch: MapDispatchFunction, target: IAn
   if (!isPlainObject(boundActionCreators)) {
     warn('mapDispatch函数必须返回一个对象')
   }
-  if (!isEmptyObject(boundActionCreators)) {
-    Object.assign(target, boundActionCreators)
-  }
+  Object.assign(target, boundActionCreators)
 }
 
 export default function handleMapDispatch(mapDispatch: MapDispatch, target: IAnyObject) {

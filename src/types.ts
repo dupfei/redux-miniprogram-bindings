@@ -55,14 +55,18 @@ export interface Context {
   setData: SetData
 }
 
-export interface QueueItem {
+interface QueueItem {
   context: Context
   data: IAnyObject
   diffData?: IAnyObject
+}
+
+export interface QueueRef {
+  value: QueueItem[]
 }
 
 export type SubscribeHandler = (currState: IAnyObject, prevState: IAnyObject) => void
 
 export type Selector<V> = (state: IAnyObject) => V
 
-export type Ref<V> = { value: V }
+export type Ref<V> = { readonly value: V }

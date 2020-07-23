@@ -30,24 +30,24 @@ export default function connect({
 
   return function processOption(options: PageComponentOption) {
     if (isArray(mapState) && mapState.length > 0) {
-      const ownState = handleMapState(mapState)
-      const [onLoadKey, onUnloadKey] = lifetimes[type]
-      const oldOnLoad = <Function | undefined>options[onLoadKey]
-      const oldOnUnload = <Function | undefined>options[onUnloadKey]
-
       /**
-       * 同一个组件 可以在 同一个页面中 多次调用，会分别产生各自的 unsubscribe
+       * 同一个组件 可以在 同一个页面中 被多次使用，会分别产生各自的 unsubscribe
        * 同一个页面 也能多个实例同时出现在页面栈中，会分别产生各自的 unsubscribe
-       * 使用 Map 收集所有的 unsubscribe
-       * 组件销毁时，调用相应的 unsubscribe 取消监听
+       * 使用 Map 收集所有页面(组件)的 unsubscribe
+       * 页面(组件)销毁时，调用各自相应的 unsubscribe 取消监听
        */
       const unsubscribeMap = new Map<symbol, Unsubscribe>()
 
       // 向 options.data 中混入依赖的 state 的初始值
+      const ownState = handleMapState(mapState)
       options.data = Object.assign(
         options.data || {},
         namespace ? { [namespace]: ownState } : ownState,
       )
+
+      const [onLoadKey, onUnloadKey] = lifetimes[type]
+      const oldOnLoad = <Function | undefined>options[onLoadKey]
+      const oldOnUnload = <Function | undefined>options[onUnloadKey]
 
       options[onLoadKey] = function (
         this: RequiredSome<PageComponentOption, 'data'>,
@@ -55,15 +55,13 @@ export default function connect({
       ) {
         // 注入依赖的 state 的最新值
         const ownState = handleMapState(mapState)
-        if (!isEmptyObject(ownState)) {
-          const diffData = diff(
-            ownState,
-            namespace ? <IAnyObject>this.data[namespace] : this.data,
-            namespace,
-          )
-          if (!isEmptyObject(diffData)) {
-            this.setData(diffData)
-          }
+        const diffData = diff(
+          ownState,
+          namespace ? <IAnyObject>this.data[namespace] : this.data,
+          namespace,
+        )
+        if (!isEmptyObject(diffData)) {
+          this.setData(diffData)
         }
 
         // 监听依赖的 state 的改变
@@ -88,7 +86,6 @@ export default function connect({
         // 取消监听
         const id = this.$$instanceId
         if (unsubscribeMap.has(id)) {
-          // 已经判断过存在
           const unsubscribe = unsubscribeMap.get(id) as Unsubscribe
           unsubscribeMap.delete(id)
           unsubscribe()

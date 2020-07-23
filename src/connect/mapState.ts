@@ -1,6 +1,6 @@
 import { MapState, IAnyObject } from '../types'
 import { useState } from '../extend/hooks'
-import { hasOwnProperty, isPlainObject, isEmptyObject } from '../utils'
+import { hasOwnProperty, isPlainObject } from '../utils'
 
 export default function handleMapState(mapState: MapState) {
   const state = useState()
@@ -17,7 +17,7 @@ export default function handleMapState(mapState: MapState) {
       }
       case 'function': {
         const funcResult = curr(state)
-        if (isPlainObject(funcResult) && !isEmptyObject(funcResult)) {
+        if (isPlainObject(funcResult)) {
           Object.assign(ownState, funcResult)
         }
         break

@@ -1,6 +1,6 @@
 import { Provider, PrivateProvider } from './types'
 import { target } from './platform'
-import { isPlainObject, warn } from './utils'
+import { isPlainObject, warn, isFunction } from './utils'
 
 export function setProvider(config: Provider) {
   if (!isPlainObject(config)) {
@@ -8,7 +8,12 @@ export function setProvider(config: Provider) {
   }
 
   const { store, namespace = '', manual = false } = config
-  if (!store) {
+  if (
+    !store ||
+    !isFunction(store.getState) ||
+    !isFunction(store.dispatch) ||
+    !isFunction(store.subscribe)
+  ) {
     warn('store必须为Redux的Store实例对象')
   }
 

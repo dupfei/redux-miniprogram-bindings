@@ -18,7 +18,10 @@ function setProvider(config) {
         warn('provider必须是一个Object');
     }
     const { store, namespace = '', manual = false } = config;
-    if (!store) {
+    if (!store ||
+        !isFunction(store.getState) ||
+        !isFunction(store.dispatch) ||
+        !isFunction(store.subscribe)) {
         warn('store必须为Redux的Store实例对象');
     }
     target.$$provider = { store, namespace, manual };
@@ -32,10 +35,7 @@ function getProvider() {
 
 const useStore = () => getProvider().store;
 const useState = () => getProvider().store.getState();
-function useDispatch() {
-    const { store } = getProvider();
-    return store.dispatch.bind(store);
-}
+const useDispatch = () => getProvider().store.dispatch;
 function useSubscribe(handler) {
     const { store } = getProvider();
     let prevState = store.getState();
@@ -72,7 +72,7 @@ function handleMapState(mapState) {
             }
             case 'function': {
                 const funcResult = curr(state);
-                if (isPlainObject(funcResult) && !isEmptyObject(funcResult)) {
+                if (isPlainObject(funcResult)) {
                     Object.assign(ownState, funcResult);
                 }
                 break;
@@ -98,9 +98,7 @@ function handleMapDispatchFunction(mapDispatch, target) {
     if (!isPlainObject(boundActionCreators)) {
         warn('mapDispatch函数必须返回一个对象');
     }
-    if (!isEmptyObject(boundActionCreators)) {
-        Object.assign(target, boundActionCreators);
-    }
+    Object.assign(target, boundActionCreators);
 }
 function handleMapDispatch(mapDispatch, target) {
     if (isPlainObject(mapDispatch)) {
@@ -239,88 +237,66 @@ function diff(currData, prevData, rootPath = '') {
     return result;
 }
 
-class BatchUpdates {
-    constructor() {
-        this.queue = [];
+const queueRef = {
+    value: [],
+};
+function queuePush(context, data) {
+    queueRef.value.push({ context, data });
+}
+function queueExec() {
+    if (queueRef.value.length < 1)
+        return;
+    const queue = queueRef.value;
+    queueRef.value = [];
+    const { namespace } = getProvider();
+    const len = queue.length;
+    for (let i = 0; i < len; i++) {
+        const queueItem = queue[i];
+        const { data: contextData } = queueItem.context;
+        const diffData = diff(queueItem.data, namespace ? contextData[namespace] : contextData, namespace);
+        if (!isEmptyObject(diffData)) {
+            queueItem.diffData = diffData;
+        }
     }
-    push(context, data) {
-        const queue = this.queue;
-        let queueItem;
-        const contextId = context.id;
-        for (let i = 0, len = queue.length; i < len; i++) {
-            if (queue[i].context.id === contextId) {
-                queueItem = queue[i];
-                break;
-            }
-        }
-        if (!queueItem) {
-            queueItem = { context, data: {} };
-            queue.push(queueItem);
-        }
-        Object.assign(queueItem.data, data);
-        Promise.resolve().then(this.exec.bind(this));
-    }
-    exec() {
-        if (this.queue.length < 1)
-            return;
-        const queue = this.queue;
-        this.queue = [];
-        const { namespace } = getProvider();
-        for (let i = 0, len = queue.length; i < len; i++) {
-            const queueItem = queue[i];
-            const { data: contextData } = queueItem.context;
-            const diffData = diff(queueItem.data, namespace ? contextData[namespace] : contextData, namespace);
-            if (!isEmptyObject(diffData)) {
-                queueItem.diffData = diffData;
-            }
-        }
-        let queueItem;
-        while ((queueItem = queue.shift())) {
-            if (queueItem.diffData) {
-                queueItem.context.setData(queueItem.diffData);
-            }
+    for (let i = 0; i < len; i++) {
+        const queueItem = queue[i];
+        if (queueItem.diffData) {
+            queueItem.context.setData(queueItem.diffData);
         }
     }
 }
-var batchUpdates = new BatchUpdates();
 
 let trackCount = 0;
 let triggerCount = 0;
 function subscription(context, mapState) {
     trackCount += 1;
     const unsubscribe = useSubscribe((currState, prevState) => {
-        let ownStateChanges;
+        const ownStateChanges = {};
         for (let i = 0, len = mapState.length; i < len; i++) {
             const curr = mapState[i];
             switch (typeof curr) {
                 case 'string': {
                     if (currState[curr] !== prevState[curr]) {
-                        if (!ownStateChanges) {
-                            ownStateChanges = {};
-                        }
                         ownStateChanges[curr] = currState[curr];
                     }
                     break;
                 }
                 case 'function': {
                     const funcResult = curr(currState);
-                    if (isPlainObject(funcResult) && !isEmptyObject(funcResult)) {
-                        if (!ownStateChanges) {
-                            ownStateChanges = {};
-                        }
+                    if (isPlainObject(funcResult)) {
                         Object.assign(ownStateChanges, funcResult);
                     }
                     break;
                 }
             }
         }
-        if (ownStateChanges) {
-            batchUpdates.push(context, ownStateChanges);
+        if (!isEmptyObject(ownStateChanges)) {
+            queuePush(context, ownStateChanges);
         }
         triggerCount += 1;
         if (triggerCount === trackCount) {
             triggerCount = 0;
-            batchUpdates.exec();
+            queueExec();
         }
     });
     return () => {
@@ -340,19 +316,17 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
     }
     return function processOption(options) {
         if (isArray(mapState) && mapState.length > 0) {
+            const unsubscribeMap = new Map();
             const ownState = handleMapState(mapState);
+            options.data = Object.assign(options.data || {}, namespace ? { [namespace]: ownState } : ownState);
             const [onLoadKey, onUnloadKey] = lifetimes[type];
             const oldOnLoad = options[onLoadKey];
             const oldOnUnload = options[onUnloadKey];
-            const unsubscribeMap = new Map();
-            options.data = Object.assign(options.data || {}, namespace ? { [namespace]: ownState } : ownState);
             options[onLoadKey] = function (...args) {
                 const ownState = handleMapState(mapState);
-                if (!isEmptyObject(ownState)) {
-                    const diffData = diff(ownState, namespace ? this.data[namespace] : this.data, namespace);
-                    if (!isEmptyObject(diffData)) {
-                        this.setData(diffData);
-                    }
+                const diffData = diff(ownState, namespace ? this.data[namespace] : this.data, namespace);
+                if (!isEmptyObject(diffData)) {
+                    this.setData(diffData);
                 }
                 const id = Symbol('instanceId');
                 const unsubscribe = subscription({ id, data: this.data, setData: this.setData.bind(this) }, mapState);

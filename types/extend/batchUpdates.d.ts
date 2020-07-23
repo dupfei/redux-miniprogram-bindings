@@ -1,8 +1,3 @@
-import { IAnyObject, Context } from '../types'
-declare class BatchUpdates {
-  private queue
-  push(context: Context, data: IAnyObject): void
-  exec(): void
-}
-declare const _default: BatchUpdates
-export default _default
+import { Context, IAnyObject } from '../types'
+export declare function queuePush(context: Context, data: IAnyObject): void
+export declare function queueExec(): void

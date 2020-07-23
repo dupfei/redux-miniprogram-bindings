@@ -5,10 +5,7 @@ export const useStore = () => getProvider().store
 
 export const useState = () => getProvider().store.getState()
 
-export function useDispatch() {
-  const { store } = getProvider()
-  return store.dispatch.bind(store)
-}
+export const useDispatch = () => getProvider().store.dispatch
 
 export function useSubscribe(handler: SubscribeHandler) {
   const { store } = getProvider()
