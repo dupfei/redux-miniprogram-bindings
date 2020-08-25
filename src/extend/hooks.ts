@@ -19,13 +19,25 @@ export function useSubscribe(handler: SubscribeHandler) {
 
 export function useRef<V = unknown>(selector: Selector<V>) {
   const { store } = getProvider()
+
+  let lastState: IAnyObject
+  let lastResult: unknown
+  const selectorWrapper = (state: IAnyObject) => {
+    if (lastState !== state) {
+      lastResult = selector(state)
+    }
+    lastState = state
+    return lastResult
+  }
+
   const ref = {} as Ref<V>
   Object.defineProperty(ref, 'value', {
     configurable: false,
     enumerable: true,
     get() {
-      return selector(store.getState())
+      return selectorWrapper(store.getState())
     },
   })
+
   return ref
 }

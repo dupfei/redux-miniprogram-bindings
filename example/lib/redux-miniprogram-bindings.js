@@ -48,12 +48,21 @@ function useSubscribe(handler) {
 }
 function useRef(selector) {
     const { store } = getProvider();
+    let lastState;
+    let lastResult;
+    const selectorWrapper = (state) => {
+        if (lastState !== state) {
+            lastResult = selector(state);
+        }
+        lastState = state;
+        return lastResult;
+    };
     const ref = {};
     Object.defineProperty(ref, 'value', {
         configurable: false,
         enumerable: true,
         get() {
-            return selector(store.getState());
+            return selectorWrapper(store.getState());
         },
     });
     return ref;
