@@ -51,18 +51,17 @@ export type PageComponentOption = Merge<
 
 export interface Context {
   id: symbol
+  namespace: string
   data: IAnyObject
   setData: SetData
 }
 
-interface QueueItem {
-  context: Context
+export interface QueueItem {
+  id: symbol
+  rootPath: string
   data: IAnyObject
-  diffData?: IAnyObject
-}
-
-export interface QueueRef {
-  value: QueueItem[]
+  updater: IAnyObject
+  setData: SetData
 }
 
 export type SubscribeHandler = (currState: IAnyObject, prevState: IAnyObject) => void

@@ -53,13 +53,11 @@ export default function connect({
         this: RequiredSome<PageComponentOption, 'data'>,
         ...args: IAnyArray
       ) {
+        const getData = () => (namespace ? <IAnyObject>this.data[namespace] : this.data)
+
         // 注入依赖的 state 的最新值
         const ownState = handleMapState(mapState)
-        const diffData = diff(
-          ownState,
-          namespace ? <IAnyObject>this.data[namespace] : this.data,
-          namespace,
-        )
+        const diffData = diff(ownState, getData(), namespace)
         if (!isEmptyObject(diffData)) {
           this.setData(diffData)
         }
@@ -67,7 +65,7 @@ export default function connect({
         // 监听依赖的 state 的改变
         const id = Symbol('instanceId')
         const unsubscribe = subscription(
-          { id, data: this.data, setData: this.setData.bind(this) },
+          { id, namespace, data: getData(), setData: this.setData.bind(this) },
           mapState,
         )
         unsubscribeMap.set(id, unsubscribe)
