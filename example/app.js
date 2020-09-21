@@ -4,7 +4,6 @@ import { setProvider } from './lib/redux-miniprogram-bindings'
 setProvider({
   store,
   namespace: '',
-  manual: false,
 })
 
 App({})

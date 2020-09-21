@@ -15,18 +15,14 @@ export default function connect({
   type = 'page',
   mapState,
   mapDispatch,
-  manual,
+  manual = false,
 }: ConnectOption = {}) {
   if (type !== 'page' && type !== 'component') {
     warn('type属性只能是page或component')
   }
 
   const isPage = type === 'page'
-  const { namespace, manual: manualDefaults } = getProvider()
-
-  if (typeof manual !== 'boolean') {
-    manual = manualDefaults
-  }
+  const { namespace } = getProvider()
 
   return function processOption(options: PageComponentOption) {
     if (isArray(mapState) && mapState.length > 0) {

@@ -7,7 +7,7 @@ export function setProvider(config: Provider) {
     warn('provider必须是一个Object')
   }
 
-  const { store, namespace = '', manual = false } = config
+  const { store, namespace = '' } = config
   if (
     !store ||
     !isFunction(store.getState) ||
@@ -17,7 +17,7 @@ export function setProvider(config: Provider) {
     warn('store必须为Redux的Store实例对象')
   }
 
-  target.$$provider = { store, namespace, manual }
+  target.$$provider = { store, namespace }
 }
 
 export function getProvider() {

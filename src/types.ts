@@ -13,7 +13,6 @@ export type IAnyArray = unknown[]
 export interface Provider {
   store: Store
   namespace?: string
-  manual?: boolean
 }
 
 export type PrivateProvider = Required<Provider>

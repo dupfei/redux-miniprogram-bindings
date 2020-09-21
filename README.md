@@ -131,12 +131,6 @@
     > - 明确哪些是来自于 store 的数据，哪些是 data 中的数据
     > - store 中的数据必须通过 dispatch 才能触发更新，可以避免无意中对来自于 store 的数据使用 `this.setData` 造成 store 中的数据被修改，但是其他依赖该数据的页面不更新。因为更新时需要加上额外的命名空间前缀
 
-  - manual：`boolean`
-
-    是否需要手动调用 `Page()` 和 `Component()`，默认为 `false`。当设置为 `true` 时，`connect` 会返回处理好的传入的 options 对象，需要主动调用 `Page()` 或 `Component()` 进行实例注册。这为使用者自定义扩展提供了途径
-
-    如果 `connect` 中也配置了该属性，会覆盖此处的配置，以 `connect` 中的配置为准
-
 - 必须在所有用到 `store` 的代码之前调用
 
   **最佳实践：**
@@ -258,7 +252,7 @@
 
   - manual：`boolean`
 
-    是否需要手动调用 `Page()` 或 `Component()`，默认值为 `setProvider` 中配置的值或 `false`
+    是否需要手动调用 `Page()` 或 `Component()`，默认值为 `false`。当设置为 `true` 时，`connect` 会返回处理好的传入的 options 对象，需要主动调用 `Page()` 或 `Component()` 进行实例注册。这为使用者自定义扩展提供了途径
 
     ```js
     const options = connect({
