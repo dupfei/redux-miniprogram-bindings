@@ -1,5 +1,5 @@
+import { SubscribeHandler, IAnyObject, Selector, Ref } from '../types'
 import { getProvider } from '../provider'
-import { SubscribeHandler, IAnyObject, Selector, Ref } from 'src/types'
 
 export const useStore = () => getProvider().store
 

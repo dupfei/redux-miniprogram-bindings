@@ -1,7 +1,7 @@
 import { Context, MapState, IAnyObject } from '../types'
 import { useSubscribe } from './hooks'
 import { batchUpdate } from './batchUpdate'
-import { isPlainObject, isEmptyObject } from '../utils'
+import { isPlainObject, getKeys } from '../utils'
 
 export default function subscription(context: Context, mapState: MapState) {
   return useSubscribe((currState, prevState) => {
@@ -24,7 +24,7 @@ export default function subscription(context: Context, mapState: MapState) {
         }
       }
     }
-    if (!isEmptyObject(ownStateChanges)) {
+    if (getKeys(ownStateChanges).length > 0) {
       batchUpdate(context, ownStateChanges)
     }
   })
