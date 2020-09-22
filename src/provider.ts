@@ -3,9 +3,12 @@ import { isPlainObject, isFunction, warn } from './utils'
 
 const providerStore: ProviderStore = __PLATFORM__ === 'alipay' ? my : Object.create(null)
 
-const genLifetimes = (): Lifetimes => ({
+const genLifetimes = (component2 = false): Lifetimes => ({
   page: ['onLoad', 'onUnload'],
-  component: __PLATFORM__ === 'alipay' ? ['didMount', 'didUnmount'] : ['attached', 'detached'],
+  component:
+    __PLATFORM__ === 'alipay'
+      ? [component2 ? 'onInit' : 'didMount', 'didUnmount']
+      : ['attached', 'detached'],
 })
 
 export function setProvider(provider: Provider) {
@@ -13,7 +16,7 @@ export function setProvider(provider: Provider) {
     warn('provider必须是一个Object')
   }
 
-  const { store, namespace = '' } = provider
+  const { store, namespace = '', component2 = false } = provider
   if (
     !store ||
     !isFunction(store.getState) ||
@@ -25,7 +28,7 @@ export function setProvider(provider: Provider) {
 
   providerStore.__REDUX_BINDINGS_PROVIDER__ = {
     store,
-    lifetimes: genLifetimes(),
+    lifetimes: genLifetimes(component2),
     namespace,
   }
 }

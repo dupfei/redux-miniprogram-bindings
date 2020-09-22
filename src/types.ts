@@ -13,6 +13,7 @@ export type IAnyArray = unknown[]
 export interface Provider {
   store: Store
   namespace?: string
+  component2?: boolean
 }
 
 export interface ReduxBindingsProvider {
