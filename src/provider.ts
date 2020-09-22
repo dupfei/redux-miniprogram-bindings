@@ -1,13 +1,19 @@
-import { Provider, PrivateProvider } from './types'
-import { target } from './platform'
-import { isPlainObject, warn, isFunction } from './utils'
+import { ProviderStore, Lifetimes, Provider, ReduxBindingsProvider } from './types'
+import { isPlainObject, isFunction, warn } from './utils'
 
-export function setProvider(config: Provider) {
-  if (!isPlainObject(config)) {
+const providerStore: ProviderStore = __PLATFORM__ === 'alipay' ? my : Object.create(null)
+
+const genLifetimes = (): Lifetimes => ({
+  page: ['onLoad', 'onUnload'],
+  component: __PLATFORM__ === 'alipay' ? ['didMount', 'didUnmount'] : ['attached', 'detached'],
+})
+
+export function setProvider(provider: Provider) {
+  if (!isPlainObject(provider)) {
     warn('provider必须是一个Object')
   }
 
-  const { store, namespace = '' } = config
+  const { store, namespace = '' } = provider
   if (
     !store ||
     !isFunction(store.getState) ||
@@ -17,13 +23,17 @@ export function setProvider(config: Provider) {
     warn('store必须为Redux的Store实例对象')
   }
 
-  target.$$provider = { store, namespace }
+  providerStore.__REDUX_BINDINGS_PROVIDER__ = {
+    store,
+    lifetimes: genLifetimes(),
+    namespace,
+  }
 }
 
-export function getProvider() {
-  if (!target.$$provider) {
+export function getProvider(): ReduxBindingsProvider {
+  if (!providerStore.__REDUX_BINDINGS_PROVIDER__) {
     warn('请先设置provider')
   }
 
-  return target.$$provider as PrivateProvider
+  return providerStore.__REDUX_BINDINGS_PROVIDER__!
 }

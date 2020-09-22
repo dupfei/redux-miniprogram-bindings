@@ -15,9 +15,14 @@ export interface Provider {
   namespace?: string
 }
 
-export type PrivateProvider = Required<Provider>
-
-export type Target = Merge<{ $$provider?: PrivateProvider }, IAnyObject>
+export interface ReduxBindingsProvider {
+  store: Store
+  lifetimes: Lifetimes
+  namespace: string
+}
+export interface ProviderStore {
+  __REDUX_BINDINGS_PROVIDER__?: ReduxBindingsProvider
+}
 
 type IType = 'page' | 'component'
 

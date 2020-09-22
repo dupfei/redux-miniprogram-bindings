@@ -1,7 +1,6 @@
 import { Unsubscribe } from 'redux'
 import { ConnectOption, PageComponentOption, IAnyObject, IAnyArray, RequiredSome } from '../types'
 import { getProvider } from '../provider'
-import { lifetimes } from '../platform'
 import handleMapState from './mapState'
 import handleMapDispatch from './mapDispatch'
 import diff from '../extend/diff'
@@ -22,7 +21,7 @@ export default function connect({
   }
 
   const isPage = type === 'page'
-  const { namespace } = getProvider()
+  const { lifetimes, namespace } = getProvider()
 
   return function processOption(options: PageComponentOption) {
     if (isArray(mapState) && mapState.length > 0) {
