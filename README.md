@@ -7,10 +7,10 @@
 
 ## 特性
 
-- API 简单灵活，只需一个 connect 即可轻松使用(提供 `$page` 和 `$component` 别名方法)
+- API 简单灵活，只需一个 `connect` 即可轻松使用(提供 `$page` 和 `$component` 别名快捷方法)
 - 功能完善，提供了多种使用方式，可满足不同的需求和使用场景
 - 支持在 XML 中使用
-- 执行 dispatch 后所有未销毁的页面(或组件)内部状态自动更新，视图自动更新渲染
+- 执行 dispatch 后所有未销毁的页面(或组件)内部状态自动更新，视图自动队列批量更新渲染
 - 自动进行 diff 优化和批量队列更新处理，性能优异
 - 支持 `微信小程序` 和 `支付宝小程序`
 
@@ -25,28 +25,66 @@
   $ yarn add redux-miniprogram-bindings redux
   ```
 
-- 直接引入 `dist` 目录下对应的 `redux-miniprogram-bindings` 文件
+- 也可以直接引入 `dist` 目录下对应的 `redux-miniprogram-bindings` 文件
 
-- 引入 [redux](https://github.com/reduxjs/redux) 文件(这只是个绑定库，并不包含 redux 的代码在内)
+- 需要单独引入 [redux](https://github.com/reduxjs/redux) 文件(这只是个绑定库，并不包含 redux 的代码在内)
 
 ## 使用
 
 1. 创建 Redux 的 Store 实例
 
+   ```js
+   // store.js
+   import { createStore, combineReducers } from 'redux'
+
+   function counter(state = 0, action) {
+     switch (action.type) {
+       case 'INCREMENT':
+         return state + (action.step || 1)
+       case 'DECREMENT':
+         return state - (action.step || 1)
+       default:
+         return state
+     }
+   }
+
+   const initUserInfo = { name: 'userName', age: 25 }
+   function userInfo(state = initUserInfo, action) {
+     switch (action.type) {
+       case 'SET_USER_INFO':
+         return { ...state, ...action.userInfo }
+       default:
+         return state
+     }
+   }
+
+   const rootReducer = combineReducers({ counter, userInfo })
+   const store = createStore(rootReducer)
+
+   export default store
+   ```
+
 2. 在 `app.js` 文件中设置 provider
 
    ```js
-   // app.js
+   // setupStore.js
    import store from 'your/store/path'
    // 微信小程序
    import { setProvider } from 'redux-miniprogram-bindings'
    // 支付宝小程序
    // import { setProvider } from 'redux-miniprogram-bindings/dist/redux-miniprogram-bindings.alipay.min.js'
 
-   // 在所有依赖 store 的代码之前调用
    setProvider({ store })
+   ```
 
-   App({})
+   ```js
+   // app.js
+   // 确保在其他代码之前调用
+   import './setupStore.js'
+
+   App({
+     /** ... */
+   })
    ```
 
 3. 在页面中使用
@@ -112,26 +150,34 @@
 
 ## API
 
-### setProvider：`(config) => void` - 配置 store
+### setProvider：`(config) => void`
+
+设置 Provider
 
 - config 对象的属性：
 
-  - store：`Object`
+  - store：`Store`
 
     Redux 的 Store 实例对象，必传
 
   - namespace：`string`
 
-    命名空间，默认为空。当设置命名空间后，会将所有依赖的 state 数据存放到 `以命名空间字段值为 key` 的对象中，此时读取 state 值需要加上命名空间字段值
+    命名空间，默认为空
 
-    > 例如设置 `namespace: '$store'` ，那么在页面(或组件)中获取依赖的 state 值需要使用 `this.data.$store.xxx` 形式，在 XML 中也需要加上前缀：`<view>{{ $store.xxx }}</view>`
+    当设置命名空间后，会将所有依赖的 state 数据存放到 `以命名空间字段值为 key` 的对象中，此时读取 state 值需要加上命名空间字段值
+
+    > 例如设置 `namespace: '$store'`，那么在页面(或组件)中获取依赖的 state 值需要使用 `this.data.$store.xxx` 形式，在 XML 中也需要加上前缀：`<view>{{ $store.xxx }}</view>`
 
     > 命名空间存在的意义：
     >
-    > - 明确哪些是来自于 store 的数据，哪些是 data 中的数据
-    > - store 中的数据必须通过 dispatch 才能触发更新，可以避免无意中对来自于 store 的数据使用 `this.setData` 造成 store 中的数据被修改，但是其他依赖该数据的页面不更新。因为更新时需要加上额外的命名空间前缀
+    > - 明确哪些数据是来自于 store
+    > - store 中的数据必须通过 dispatch 才能触发更新。命名空间可以避免无意中使用 `this.setData` 造成 store 中的数据被修改,因为需要加上额外的命名空间前缀：`this.setData({ '$store.xxx': xxx })`
 
-- 必须在所有用到 `store` 的代码之前调用
+  - component2: `boolean`
+
+    是否开启了 component2，默认为 `false`，仅 `支付宝小程序` 支持
+
+- 该函数必须在所有用到 `store` 的代码之前调用
 
   **最佳实践：**
 
@@ -152,22 +198,24 @@
   // app.js
   import './setupStore.js'
 
-  // ...
-
   App({})
   ```
 
-### connect：`(config) => (options) => void | options` - 连接 store
+### connect：`(config) => (options) => void | options`
+
+连接 store
 
 - config 对象的属性：
 
   - type：`"page" | "component"`
 
-    所绑定实例的类型，可选值：`page`、`component`，默认为 `page`
+    所连接实例的类型，默认为 `page`，可选值：`page`、`component`
 
   - mapState：`(string | ((state: Object) => Object))[]`
 
-    实例依赖的 state，可选。会将依赖的 store 数据注入到 data 中，并在后续状态改变时自动更新。是个数组类型，数组中可以包含字符串、函数
+    实例依赖的 state，可选
+
+    会将依赖的 state 数据注入到 data 中，并在后续状态改变时自动更新。是个数组类型，数组中可以包含字符串、函数
 
     - 数组中的字符串：字符串为依赖的 state 的相应的 key 值，页面(或组件)会在依赖的 state 发生改变时自动更新状态和队列批量触发视图渲染
 
@@ -180,7 +228,9 @@
       }
       ```
 
-    - 数组中的函数：函数接收 state 作为参数，可通过 state 获取到最新的状态数据，该函数必须返回一个对象，对象中的每一项可以是任意值，一般是根据 state 组合的数据。该方式会在 store 数据发生改变(并非一定是当前实例依赖的状态发生改变)时执行函数，然后对函数返回的结果和现有 data 中的数据进行 diff 比较，确认发生改变后队列批量更新渲染
+    - 数组中的函数：函数接收 state 作为参数，可通过 state 获取到最新的状态数据，该函数必须返回一个对象，对象中的每一项可以是任意值，一般是根据 state 组合的数据
+
+      该方式会在 store 数据发生改变(并非一定是当前实例依赖的状态发生改变)时执行函数，然后对函数返回的结果和现有 data 中的数据进行 diff 比较，确认发生改变后队列批量更新渲染
 
       ```js
       {
@@ -208,9 +258,9 @@
 
   - mapDispatch：`Object | dispatch => Object`
 
-    注入可执行的 dispatch 处理函数或任意函数，可选
+    注入可执行的 dispatch 处理函数，可选
 
-    - 对象形式：key 值为自定义函数名，实例内部可以通过该名称访问该方法，value 值为 `actionCreator` 函数。会将 actionCreator 函数包装成自动调用 disptach 的函数，并注入到实例方法中
+    - 对象形式：`key` 值为自定义函数名，实例内部可以通过该名称访问该方法，`value` 值为 `actionCreator` 函数。会将 actionCreator 函数包装成自动调用 disptach 的函数，并注入到实例方法中
 
       ```js
       // 配置
@@ -252,7 +302,9 @@
 
   - manual：`boolean`
 
-    是否需要手动调用 `Page()` 或 `Component()`，默认值为 `false`。当设置为 `true` 时，`connect` 会返回处理好的传入的 options 对象，需要主动调用 `Page()` 或 `Component()` 进行实例注册。这为使用者自定义扩展提供了途径
+    是否需要手动调用 `Page()` 或 `Component()`，默认值为 `false`
+
+    当设置为 `true` 时，`connect` 会返回处理好的传入的 options 对象，需要手动调用 `Page()` 或 `Component()` 进行实例注册。这为使用者自定义扩展提供了途径
 
     ```js
     const options = connect({
@@ -310,7 +362,9 @@
   })
   ```
 
-### \$page - connect Page 的别名
+### \$page
+
+connect Page 的别名
 
 ```js
 $page()({})
@@ -318,7 +372,9 @@ $page()({})
 connect({ type: 'page' })({})
 ```
 
-### \$component - connect Component 的别名
+### \$component
+
+connect Component 的别名
 
 ```js
 $component()({})
@@ -328,35 +384,51 @@ connect({ type: 'component' })({})
 
 ### Utils
 
-#### useStore - 获取 store 实例对象
+#### useStore: `() => Store`
+
+获取 store 实例对象
 
 ```js
 import { useStore } from 'redux-miniprogram-bindings'
-
 const store = useStore()
+
+// 相当于如下方式，但是支付宝小程序分包时不建议使用如下方式，会出现多 store 实例
+import store from 'your/store/path'
 ```
 
-#### useState - 获取当前 state 对象
+#### useState: `() => Object`
+
+获取当前 state 对象
 
 ```js
 import { useState } from 'redux-miniprogram-bindings'
-
 const state = useState()
+
+// 相当于如下方式，但是支付宝小程序分包时不建议使用如下方式，会出现多 store 实例
+import store from 'your/store/path'
+const state = store.getState()
 ```
 
-#### useDispatch - 获取 dispatch 函数
+#### useDispatch: `() => Dispatch`
+
+获取 dispatch 函数
 
 ```js
 import { useDispatch } from 'redux-miniprogram-bindings'
-
 const dispatch = useDispatch()
+
+// 相当于如下方式，但是支付宝小程序分包时不建议使用如下方式，会出现多 store 实例
+import store from 'your/store/path'
+const dispatch = store.dispatch
 ```
 
-#### useSubscribe - 添加 store 订阅
+#### useSubscribe
 
-useSubscribe 接收一个回调函数，该函数会在 store 数据发生改变时调用，该函数接收两个参数，分别是当前状态 currState 和之前状态 prevState，通过对比两者进行细化监听
+添加 store 订阅
 
-useSubscribe 返回一个函数，调用该函数终止订阅
+接收一个回调函数，该函数会在 store 数据发生改变时调用，该函数接收两个参数，分别是当前状态 currState 和之前状态 prevState，通过对比两者数据实现细化监听
+
+返回一个函数，调用该函数可以取消订阅
 
 ```js
 import { useSubscribe } from 'redux-miniprogram-bindings'
@@ -378,11 +450,13 @@ $page()({
 })
 ```
 
-#### useRef - 获取 state 对象中数据的引用
+#### useRef
 
-useRef 接收一个 selector 函数，该函数接收 state 作为参数，可以返回任意值(建议返回使用 state 组装的数据)
+获取 state 对象中数据的引用
 
-useRef 返回一个 Ref 对象，该对象拥有一个只读的 value 属性，通过该属性可以得到 selector 函数返回的最新值
+接收一个 selector 函数，该函数接收 state 作为参数，可以返回任意值(建议返回使用 state 组装的数据)
+
+返回一个 Ref 对象，该对象拥有一个只读的 value 属性，通过该属性可以得到 selector 函数返回的最新值
 
 ```js
 import { useRef } from 'redux-miniprogram-bindings'
@@ -390,8 +464,7 @@ const selector = (state) => state.userInfo.name
 const userNameRef = useRef(selector)
 
 setInterval(() => {
-  // 不管 state 数据是否发生改变
-  // 得到的永远是 state.userInfo.name 的最新值
+  // 不管 state 数据是否发生改变，得到的永远是 state.userInfo.name 的最新值
   console.log(userNameRef.value)
 }, 1000)
 ```
@@ -404,21 +477,22 @@ const selector = (state) => state.userInfo.name
 const getUserName = () => selector(useState())
 
 setInterval(() => {
-  // 不管 state 数据是否发生改变
-  // 得到的永远是 state.userInfo.name 的最新值
+  // 不管 state 数据是否发生改变，得到的永远是 state.userInfo.name 的最新值
   console.log(getUserName())
 }, 1000)
 ```
 
 具体使用哪种方式完全看个人喜好，这里只是提供了一个工具方法
 
-#### useSelector - 对 selector 函数结果进行缓存
+#### useSelector
 
-useSelector 接收一个 selector 函数，该函数接收 state 作为参数，可以返回任意值(建议返回使用 state 组装的数据)
+对 selector 函数结果进行缓存
 
-useSelector 同时接受一个 deps 数组，该数组包含 selector 函数结果变更依赖的 state 的 key 值
+接收一个 selector 函数，该函数接收 state 作为参数，可以返回任意值(建议返回使用 state 组装的数据)
 
-useSelector 返回一个同 selector 函数签名一致的函数，该函数每次执行时会对依赖项 deps 数组中每一项的值进行浅比较，只有依赖项的值发生改变时才会重新执行函数，降低复杂逻辑函数的执行频率
+同时接受一个 deps 数组，该数组包含 selector 函数结果变更依赖的 state 的 key 值
+
+返回一个同 selector 函数签名一致的函数，该函数每次执行时会对依赖项 deps 数组中每一项的值进行浅比较，只有依赖项的值发生改变时才会重新执行函数，降低复杂逻辑函数的执行频率
 
 ```js
 // 配合 useRef 使用
@@ -436,7 +510,7 @@ setInterval(() => {
 // 配合 mapState 使用
 import { $page, useSelector } from 'redux-miniprogram-bindings'
 // 只在 state.userInfo 发生改变时才会重新执行
-const userNameSelector = useSelector((state) => state.userInfo.name, ['userInfo'])
+const userNameSelector = useSelector((state) => ({ userName: state.userInfo.name }), ['userInfo'])
 
 $page({
   mapState: [userNameSelector],
