@@ -1,36 +1,41 @@
-const target =  my;
-const lifetimes =  { page: ['onLoad', 'onUnload'], component: ['didMount', 'didUnmount'] };
-
 const isFunction = (value) => typeof value === 'function';
-const isArray = Array.isArray;
 const _toString = Object.prototype.toString;
 const isPlainObject = (value) => _toString.call(value) === '[object Object]';
 const getType = (value) => _toString.call(value);
 const getKeys = Object.keys;
-const isEmptyObject = (value) => getKeys(value).length < 1;
-const hasOwnProperty = Object.prototype.hasOwnProperty;
+const { hasOwnProperty } = Object.prototype;
 const warn = (message) => {
     throw new Error(message);
 };
 
-function setProvider(config) {
-    if (!isPlainObject(config)) {
+const providerStore =  my ;
+const genLifetimes = (component2 = false) => ({
+    page: ['onLoad', 'onUnload'],
+    component:  [component2 ? 'onInit' : 'didMount', 'didUnmount']
+        ,
+});
+function setProvider(provider) {
+    if (!isPlainObject(provider)) {
         warn('provider必须是一个Object');
     }
-    const { store, namespace = '', manual = false } = config;
+    const { store, namespace = '', component2 = false } = provider;
     if (!store ||
         !isFunction(store.getState) ||
         !isFunction(store.dispatch) ||
         !isFunction(store.subscribe)) {
         warn('store必须为Redux的Store实例对象');
     }
-    target.$$provider = { store, namespace, manual };
+    providerStore.__REDUX_BINDINGS_PROVIDER__ = {
+        store,
+        lifetimes: genLifetimes(component2),
+        namespace,
+    };
 }
 function getProvider() {
-    if (!target.$$provider) {
+    if (!providerStore.__REDUX_BINDINGS_PROVIDER__) {
         warn('请先设置provider');
     }
-    return target.$$provider;
+    return providerStore.__REDUX_BINDINGS_PROVIDER__;
 }
 
 const useStore = () => getProvider().store;
@@ -47,24 +52,29 @@ function useSubscribe(handler) {
 }
 function useRef(selector) {
     const { store } = getProvider();
-    let lastState;
-    let lastResult;
-    const selectorWrapper = (state) => {
-        if (lastState !== state) {
-            lastResult = selector(state);
-        }
-        lastState = state;
-        return lastResult;
-    };
     const ref = {};
     Object.defineProperty(ref, 'value', {
         configurable: false,
         enumerable: true,
         get() {
-            return selectorWrapper(store.getState());
+            return selector(store.getState());
         },
     });
     return ref;
+}
+function useSelector(selector, deps) {
+    if (!Array.isArray(deps) || deps.length < 1) {
+        return selector;
+    }
+    let lastState = {};
+    let lastResult;
+    return function (state) {
+        if (deps.some((k) => lastState[k] !== state[k])) {
+            lastState = state;
+            lastResult = selector(state);
+        }
+        return lastResult;
+    };
 }
 
 function handleMapState(mapState) {
@@ -246,40 +256,32 @@ function diff(currData, prevData, rootPath = '') {
     return result;
 }
 
-const queueRef = {
-    value: [],
-};
-function queuePush(context, data) {
-    queueRef.value.push({ context, data });
-}
-function queueExec() {
-    if (queueRef.value.length < 1)
-        return;
-    const queue = queueRef.value;
-    queueRef.value = [];
-    const { namespace } = getProvider();
-    const len = queue.length;
-    for (let i = 0; i < len; i++) {
-        const queueItem = queue[i];
-        const { data: contextData } = queueItem.context;
-        const diffData = diff(queueItem.data, namespace ? contextData[namespace] : contextData, namespace);
-        if (!isEmptyObject(diffData)) {
-            queueItem.diffData = diffData;
-        }
+const queue = [];
+function batchUpdate({ id, data, setData }, updater) {
+    const queueItem = queue.find((q) => q.id === id);
+    if (queueItem) {
+        Object.assign(queueItem.updater, updater);
     }
-    for (let i = 0; i < len; i++) {
-        const queueItem = queue[i];
-        if (queueItem.diffData) {
-            queueItem.context.setData(queueItem.diffData);
+    else {
+        queue.push({ id, rootPath: getProvider().namespace, data: Object.assign({}, data), updater, setData });
+    }
+    Object.assign(data, updater);
+    Promise.resolve().then(update);
+}
+function update() {
+    if (queue.length < 1)
+        return;
+    let queueItem;
+    while ((queueItem = queue.shift())) {
+        const diffData = diff(queueItem.updater, queueItem.data, queueItem.rootPath);
+        if (getKeys(diffData).length > 0) {
+            queueItem.setData(diffData);
         }
     }
 }
 
-let trackCount = 0;
-let triggerCount = 0;
 function subscription(context, mapState) {
-    trackCount += 1;
-    const unsubscribe = useSubscribe((currState, prevState) => {
+    return useSubscribe((currState, prevState) => {
         const ownStateChanges = {};
         for (let i = 0, len = mapState.length; i < len; i++) {
             const curr = mapState[i];
@@ -299,57 +301,47 @@ function subscription(context, mapState) {
                 }
             }
         }
-        if (!isEmptyObject(ownStateChanges)) {
-            queuePush(context, ownStateChanges);
-        }
-        triggerCount += 1;
-        if (triggerCount === trackCount) {
-            triggerCount = 0;
-            queueExec();
+        if (getKeys(ownStateChanges).length > 0) {
+            batchUpdate(context, ownStateChanges);
         }
     });
-    return () => {
-        trackCount -= 1;
-        unsubscribe();
-    };
 }
 
-function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
+const INSTANCE_ID = Symbol('INSTANCE_ID');
+function connect({ type = 'page', mapState, mapDispatch, manual = false, } = {}) {
     if (type !== 'page' && type !== 'component') {
         warn('type属性只能是page或component');
     }
     const isPage = type === 'page';
-    const { namespace, manual: manualDefaults } = getProvider();
-    if (typeof manual !== 'boolean') {
-        manual = manualDefaults;
-    }
+    const { lifetimes, namespace } = getProvider();
     return function processOption(options) {
-        if (isArray(mapState) && mapState.length > 0) {
-            const unsubscribeMap = new Map();
+        if (Array.isArray(mapState) && mapState.length > 0) {
             const ownState = handleMapState(mapState);
             options.data = Object.assign(options.data || {}, namespace ? { [namespace]: ownState } : ownState);
+            const unsubscribeMap = new Map();
             const [onLoadKey, onUnloadKey] = lifetimes[type];
             const oldOnLoad = options[onLoadKey];
             const oldOnUnload = options[onUnloadKey];
             options[onLoadKey] = function (...args) {
+                const getData = () => namespace ? this.data[namespace] : this.data;
                 const ownState = handleMapState(mapState);
-                const diffData = diff(ownState, namespace ? this.data[namespace] : this.data, namespace);
-                if (!isEmptyObject(diffData)) {
+                const diffData = diff(ownState, getData(), namespace);
+                if (getKeys(diffData).length > 0) {
                     this.setData(diffData);
                 }
                 const id = Symbol('instanceId');
-                const unsubscribe = subscription({ id, data: this.data, setData: this.setData.bind(this) }, mapState);
+                const unsubscribe = subscription({ id, data: getData(), setData: this.setData.bind(this) }, mapState);
                 unsubscribeMap.set(id, unsubscribe);
-                this.$$instanceId = id;
+                this[INSTANCE_ID] = id;
                 if (oldOnLoad) {
                     oldOnLoad.apply(this, args);
                 }
             };
-            options[onUnloadKey] = function (...args) {
+            options[onUnloadKey] = function () {
                 if (oldOnUnload) {
-                    oldOnUnload.apply(this, args);
+                    oldOnUnload.apply(this);
                 }
-                const id = this.$$instanceId;
+                const id = this[INSTANCE_ID];
                 if (unsubscribeMap.has(id)) {
                     const unsubscribe = unsubscribeMap.get(id);
                     unsubscribeMap.delete(id);
@@ -364,7 +356,13 @@ function connect({ type = 'page', mapState, mapDispatch, manual, } = {}) {
         return manual ? options : isPage ? Page(options) : Component(options);
     };
 }
-const $page = (config = {}) => connect(Object.assign(Object.assign({}, config), { type: 'page' }));
-const $component = (config = {}) => connect(Object.assign(Object.assign({}, config), { type: 'component' }));
+function $page(config = {}) {
+    config.type = 'page';
+    return connect(config);
+}
+function $component(config = {}) {
+    config.type = 'component';
+    return connect(config);
+}
 
-export { $component, $page, connect, setProvider, useDispatch, useRef, useState, useStore, useSubscribe };
+export { $component, $page, connect, setProvider, useDispatch, useRef, useSelector, useState, useStore, useSubscribe };

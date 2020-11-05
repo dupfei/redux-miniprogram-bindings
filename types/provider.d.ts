@@ -1,3 +1,3 @@
-import { Provider } from './types'
-export declare function setProvider(config: Provider): void
-export declare function getProvider(): Required<Provider>
+import { Provider, ReduxBindingsProvider } from './types'
+export declare function setProvider(provider: Provider): void
+export declare function getProvider(): ReduxBindingsProvider

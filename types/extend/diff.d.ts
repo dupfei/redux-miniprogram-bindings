@@ -3,4 +3,4 @@ export default function diff(
   currData: IAnyObject,
   prevData: IAnyObject,
   rootPath?: string,
-): Record<string, unknown>
+): IAnyObject

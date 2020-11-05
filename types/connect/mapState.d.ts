@@ -1,2 +1,2 @@
-import { MapState } from '../types'
-export default function handleMapState(mapState: MapState): Record<string, unknown>
+import { MapState, IAnyObject } from '../types'
+export default function handleMapState(mapState: MapState): IAnyObject

@@ -4,34 +4,10 @@ export default function connect({
   mapState,
   mapDispatch,
   manual,
-}?: ConnectOption): (
-  options: PageComponentOption,
-) => void | {
-  [x: string]: unknown
-  data?: Record<string, unknown> | undefined
-  methods?: Record<string, Function> | undefined
-  setData: (data: Record<string, unknown>, callback?: (() => void) | undefined) => void
-  $$instanceId: symbol
-}
-export declare const $page: (
+}?: ConnectOption): (options: PageComponentOption) => void | PageComponentOption
+export declare function $page(
   config?: ConnectOption,
-) => (
-  options: PageComponentOption,
-) => void | {
-  [x: string]: unknown
-  data?: Record<string, unknown> | undefined
-  methods?: Record<string, Function> | undefined
-  setData: (data: Record<string, unknown>, callback?: (() => void) | undefined) => void
-  $$instanceId: symbol
-}
-export declare const $component: (
+): (options: PageComponentOption) => void | PageComponentOption
+export declare function $component(
   config?: ConnectOption,
-) => (
-  options: PageComponentOption,
-) => void | {
-  [x: string]: unknown
-  data?: Record<string, unknown> | undefined
-  methods?: Record<string, Function> | undefined
-  setData: (data: Record<string, unknown>, callback?: (() => void) | undefined) => void
-  $$instanceId: symbol
-}
+): (options: PageComponentOption) => void | PageComponentOption
