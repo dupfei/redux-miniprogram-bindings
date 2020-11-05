@@ -9,7 +9,7 @@ function diffObject(
   prevData: IAnyObject,
   result: IAnyObject,
   rootPath: string,
-) {
+): void {
   const currDataKeys = getKeys(currData)
   const prevDataKeys = getKeys(prevData)
   const currDataKeysLen = currDataKeys.length
@@ -62,7 +62,12 @@ function diffObject(
   }
 }
 
-function diffArray(currData: IAnyArray, prevData: IAnyArray, result: IAnyObject, rootPath: string) {
+function diffArray(
+  currData: IAnyArray,
+  prevData: IAnyArray,
+  result: IAnyObject,
+  rootPath: string,
+): void {
   const currDataLen = currData.length
   const prevDataLen = prevData.length
 
@@ -103,7 +108,11 @@ function diffArray(currData: IAnyArray, prevData: IAnyArray, result: IAnyObject,
   }
 }
 
-export default function diff(currData: IAnyObject, prevData: IAnyObject, rootPath = '') {
+export default function diff(
+  currData: IAnyObject,
+  prevData: IAnyObject,
+  rootPath = '',
+): IAnyObject {
   const currDataKeys = getKeys(currData)
   const prevDataKeys = getKeys(prevData)
   const currDataKeysLen = currDataKeys.length

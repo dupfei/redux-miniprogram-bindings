@@ -5,7 +5,7 @@ import { getKeys } from '../utils'
 
 const queue: QueueItem[] = []
 
-export function batchUpdate({ id, data, setData }: Context, updater: IAnyObject) {
+export function batchUpdate({ id, data, setData }: Context, updater: IAnyObject): void {
   const queueItem = queue.find((q) => q.id === id)
   if (queueItem) {
     // 合并多次更新
@@ -24,7 +24,7 @@ export function batchUpdate({ id, data, setData }: Context, updater: IAnyObject)
   Promise.resolve().then(update)
 }
 
-function update() {
+function update(): void {
   if (queue.length < 1) return
 
   let queueItem

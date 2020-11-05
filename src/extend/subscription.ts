@@ -1,9 +1,10 @@
+import { Unsubscribe } from 'redux'
 import { Context, MapState, IAnyObject } from '../types'
 import { useSubscribe } from './hooks'
 import { batchUpdate } from './batchUpdate'
 import { isPlainObject, getKeys } from '../utils'
 
-export default function subscription(context: Context, mapState: MapState) {
+export default function subscription(context: Context, mapState: MapState): Unsubscribe {
   return useSubscribe((currState, prevState) => {
     const ownStateChanges: IAnyObject = {}
     for (let i = 0, len = mapState.length; i < len; i++) {

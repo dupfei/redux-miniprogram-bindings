@@ -2,7 +2,7 @@ import { MapState, IAnyObject } from '../types'
 import { useState } from '../extend/hooks'
 import { hasOwnProperty, isPlainObject } from '../utils'
 
-export default function handleMapState(mapState: MapState) {
+export default function handleMapState(mapState: MapState): IAnyObject {
   const state = useState()
   const ownState: IAnyObject = {}
 

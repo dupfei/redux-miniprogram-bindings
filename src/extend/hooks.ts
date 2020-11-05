@@ -1,13 +1,14 @@
+import { Store, AnyAction, Dispatch, Unsubscribe } from 'redux'
 import { SubscribeHandler, IAnyObject, Selector, Ref } from '../types'
 import { getProvider } from '../provider'
 
-export const useStore = () => getProvider().store
+export const useStore = (): Store<IAnyObject, AnyAction> => getProvider().store
 
-export const useState = () => getProvider().store.getState()
+export const useState = (): IAnyObject => getProvider().store.getState()
 
-export const useDispatch = () => getProvider().store.dispatch
+export const useDispatch = (): Dispatch<AnyAction> => getProvider().store.dispatch
 
-export function useSubscribe(handler: SubscribeHandler) {
+export function useSubscribe(handler: SubscribeHandler): Unsubscribe {
   const { store } = getProvider()
   let prevState = <IAnyObject>store.getState()
   return store.subscribe(() => {
@@ -17,7 +18,7 @@ export function useSubscribe(handler: SubscribeHandler) {
   })
 }
 
-export function useRef<V = unknown>(selector: Selector<V>) {
+export function useRef<V = unknown>(selector: Selector<V>): Ref<V> {
   const { store } = getProvider()
   const ref = {} as Ref<V>
   Object.defineProperty(ref, 'value', {
@@ -31,7 +32,7 @@ export function useRef<V = unknown>(selector: Selector<V>) {
   return ref
 }
 
-export function useSelector<V = unknown>(selector: Selector<V>, deps?: string[]) {
+export function useSelector<V = unknown>(selector: Selector<V>, deps?: string[]): Selector<V> {
   // 依赖项不合法或不存依赖项时，返回传入的原函数
   if (!Array.isArray(deps) || deps.length < 1) {
     return selector

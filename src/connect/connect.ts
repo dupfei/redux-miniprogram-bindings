@@ -21,7 +21,7 @@ export default function connect({
   mapState,
   mapDispatch,
   manual = false,
-}: ConnectOption = {}) {
+}: ConnectOption = {}): (options: PageComponentOption) => void | PageComponentOption {
   if (type !== 'page' && type !== 'component') {
     warn('type属性只能是page或component')
   }
@@ -29,7 +29,7 @@ export default function connect({
   const isPage = type === 'page'
   const { lifetimes, namespace } = getProvider()
 
-  return function processOption(options: PageComponentOption) {
+  return function processOption(options: PageComponentOption): PageComponentOption | void {
     if (Array.isArray(mapState) && mapState.length > 0) {
       // 向 options.data 中混入依赖的 state 的初始值
       const ownState = handleMapState(mapState)
@@ -49,8 +49,9 @@ export default function connect({
       const oldOnLoad = <Function | undefined>options[onLoadKey]
       const oldOnUnload = <Function | undefined>options[onUnloadKey]
 
-      options[onLoadKey] = function (this: This, ...args: IAnyArray) {
-        const getData = () => (namespace ? <IAnyObject>this.data![namespace] : this.data!)
+      options[onLoadKey] = function (this: This, ...args: IAnyArray): void {
+        const getData = (): IAnyObject =>
+          namespace ? <IAnyObject>this.data![namespace] : this.data!
 
         // 注入依赖的 state 的最新值
         const ownState = handleMapState(mapState)
@@ -73,7 +74,7 @@ export default function connect({
         }
       }
 
-      options[onUnloadKey] = function (this: This) {
+      options[onUnloadKey] = function (this: This): void {
         if (oldOnUnload) {
           oldOnUnload.apply(this)
         }
@@ -97,6 +98,16 @@ export default function connect({
   }
 }
 
-export const $page = (config: ConnectOption = {}) => connect({ ...config, type: 'page' })
+export function $page(
+  config: ConnectOption = {},
+): (options: PageComponentOption) => void | PageComponentOption {
+  config.type = 'page'
+  return connect(config)
+}
 
-export const $component = (config: ConnectOption = {}) => connect({ ...config, type: 'component' })
+export function $component(
+  config: ConnectOption = {},
+): (options: PageComponentOption) => void | PageComponentOption {
+  config.type = 'component'
+  return connect(config)
+}

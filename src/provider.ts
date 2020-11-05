@@ -1,6 +1,9 @@
 import { ProviderStore, Lifetimes, Provider, ReduxBindingsProvider } from './types'
 import { isPlainObject, isFunction, warn } from './utils'
 
+declare const __PLATFORM__: 'wechat' | 'alipay'
+declare const my: Record<string, unknown>
+
 const providerStore: ProviderStore = __PLATFORM__ === 'alipay' ? my : Object.create(null)
 
 const genLifetimes = (component2 = false): Lifetimes => ({
@@ -11,7 +14,7 @@ const genLifetimes = (component2 = false): Lifetimes => ({
       : ['attached', 'detached'],
 })
 
-export function setProvider(provider: Provider) {
+export function setProvider(provider: Provider): void {
   if (!isPlainObject(provider)) {
     warn('provider必须是一个Object')
   }
