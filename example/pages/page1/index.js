@@ -1,14 +1,26 @@
-import { connect, useState, useDispatch, useRef } from '../../lib/redux-miniprogram-bindings'
+import {
+  connect,
+  useState,
+  useDispatch,
+  useRef,
+  useSelector,
+} from '../../lib/redux-miniprogram-bindings'
 import { setCount } from '../../store/actions/counter'
 import { setUserInfo } from '../../store/actions/userInfo'
 
+const introSelector = useSelector(
+  (state) => {
+    console.log('重新计算')
+    return { intro: `姓名：${state.userInfo.name}，年龄：${state.userInfo.age}` }
+  },
+  ['userInfo'],
+)
+const counterSelector = useSelector((state) => ({ counterText: `count数量：${state.counter}` }), [
+  'counter',
+])
+
 connect({
-  mapState: [
-    'counter',
-    (state) => ({
-      intro: `姓名：${state.userInfo.name}，年龄：${state.userInfo.age}`,
-    }),
-  ],
+  mapState: ['counter', introSelector, counterSelector],
   mapDispatch: (dispatch) => ({
     handleReset() {
       dispatch(setCount(0))
@@ -23,7 +35,11 @@ connect({
   },
 
   onLoad() {
-    const userNameRef = useRef((state) => state.userInfo.name)
+    const calcUserName = (state) => {
+      console.log('do calc user name')
+      return state.userInfo.name
+    }
+    const userNameRef = useRef(useSelector(calcUserName, ['userInfo']))
     console.log('用户名', userNameRef.value)
 
     setTimeout(() => {

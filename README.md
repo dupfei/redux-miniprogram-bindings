@@ -412,6 +412,37 @@ setInterval(() => {
 
 具体使用哪种方式完全看个人喜好，这里只是提供了一个工具方法
 
+#### useSelector - 对 selector 函数结果进行缓存
+
+useSelector 接收一个 selector 函数，该函数接收 state 作为参数，可以返回任意值(建议返回使用 state 组装的数据)
+
+useSelector 同时接受一个 deps 数组，该数组包含 selector 函数结果变更依赖的 state 的 key 值
+
+useSelector 返回一个同 selector 函数签名一致的函数，该函数每次执行时会对依赖项 deps 数组中每一项的值进行浅比较，只有依赖项的值发生改变时才会重新执行函数，降低复杂逻辑函数的执行频率
+
+```js
+// 配合 useRef 使用
+import { useRef, useSelector } from 'redux-miniprogram-bindings'
+// 只在 state.userInfo 发生改变时才会重新执行
+const userNameselector = useSelector((state) => state.userInfo.name, ['userInfo'])
+const userNameRef = useRef(userNameselector)
+
+setInterval(() => {
+  console.log(userNameRef.value)
+}, 1000)
+```
+
+```js
+// 配合 mapState 使用
+import { $page, useSelector } from 'redux-miniprogram-bindings'
+// 只在 state.userInfo 发生改变时才会重新执行
+const userNameSelector = useSelector((state) => state.userInfo.name, ['userInfo'])
+
+$page({
+  mapState: [userNameSelector],
+})({})
+```
+
 ## diff 逻辑
 
 ![diff逻辑](./diff.svg)
